@@ -159,7 +159,7 @@ void TimelineWidget::updateMaxTick()
 ulong TimelineWidget::frameTick() const
 {
 
-    return m_ulFrameTick;
+    return m_ulFrameTick<1?1:m_ulFrameTick;
 
 }
 ulong TimelineWidget::maxDuration() const
@@ -200,12 +200,13 @@ void TimelineWidget::setFrameTick(ulong curData, bool shouldEmitSignal)
     }
 }
 
-int TimelineWidget::getTrackCount()
+int TimelineWidget::getTrackCount() const
 {
-    return m_tracks.count();
+    return (int)m_timelineData.tracks.size();
 }
 #pragma endregion
 
+#pragma region Track option
 bool TimelineWidget::addTrack(QUuid key, SpecificType trackType, int index = -1)
 {
     auto curKey = key.toString().remove("{").remove("}").remove("-");
@@ -213,25 +214,17 @@ bool TimelineWidget::addTrack(QUuid key, SpecificType trackType, int index = -1)
     TrackMime curData {curKey,actualIndex,trackType};
     m_sync.lock();
     //修改源数据
-    ExtensionMethods::SourcesExtension<QString>::eachBy(m_tracks.keys(), [&](const QString& itrKey)->void
+    auto curTracks =  m_timelineData.getTracks();
+    for(auto itr : curTracks)
     {
-       if(!m_tracks.contains(itrKey))
-           return;
-       auto curData = m_tracks[itrKey];
-       if(curData.index>=actualIndex)
-       {
-           curData.index+=1;
-       }
-       alterTrackData(itrKey, curData);
-    });
-
+        if(itr.index>=actualIndex)
+        {
+            itr.index++;
+            alterTrackData(itr.id,itr);
+        }
+    }
     bool result = true;
-    m_tracks.insert(curKey,curData);
-    qDebug()<<"current track Items:";
-    ExtensionMethods::SourcesExtension<QString>::eachBy(m_tracks.keys(),[&](QString itr)->void
-    {
-       qDebug()<<m_tracks.value(itr).toString();
-    });
+    m_timelineData.addTrack(TrackMime(curKey,actualIndex,trackType));
     if(!m_trackHeadView->addTrackHead(curData)||!m_trackBodyView->addTrackBody(curData))
     {
         result = false;
@@ -241,28 +234,48 @@ bool TimelineWidget::addTrack(QUuid key, SpecificType trackType, int index = -1)
 }
 void TimelineWidget::alterTrackData(const QString &key, const TrackMime& curData)
 {
-    m_tracks[key] = curData;
+    m_timelineData.setTrack(key,curData);
     emit TrackUpdated(key);
 }
-TrackMime TimelineWidget::getTrackData(const QString& key)
+bool TimelineWidget::getTrackData(TrackMime& data,const QString& key)
 {
-    //qDebug()<<"check key"<<key;
-     if(m_tracks.contains(key))
-       return m_tracks.value(key);
-    return {"",-1,None};
+    return m_timelineData.getTrack(data,key);
 }
-TrackMime TimelineWidget::getTrackData(int index)
+//-1 get last index data
+TrackMime TimelineWidget::getTrackData(int index = -1)
 {
-    auto key= ExtensionMethods::SourcesExtension<QString>::firstOf(m_tracks.keys(), [&](const QString& obj)->bool
+    TrackMime curData;
+    if(index ==-1)
+        index = (int)(m_timelineData.tracks.size())-1;
+    m_timelineData.getTrack(curData,[=](const TrackMime& data)->bool
     {
-       return m_tracks[obj].index==index;
-    }, "");
-    if(ExtensionMethods::QStringExtension::isNullOrEmpty(key))
+       return data.index==index;
+    });
+    return curData;
+}
+void TimelineWidget::removeTrack(QString key)
+{
+    m_timelineData.removeTrack(key);
+}
+
+#pragma  endregion
+
+#pragma  region Clip option
+void TimelineWidget::addClip(const QString &trackKey, const ClipMime &mime)
+{
+    TrackMime cur;
+    if(!m_timelineData.getTrack(cur,[&](const TrackMime& x)->bool{
+        return x.id== trackKey;
+    }))
     {
-        return {"",-1,None};
+        qDebug()<<"add clip failed , track:["<<trackKey<< "]is not exist";
+        return;
     }
-    return m_tracks.value(key);
+    cur.addClip(mime);
+    emit TrackClipChanged(trackKey,mime.id,1);
 }
+void TimelineWidget::removeClip(const ClipMime &clipKey)
+{
 
-
-
+}
+#pragma  endregion

@@ -54,6 +54,7 @@ struct is_sequence_container: std::integral_constant<bool,
                                                          is_template_instant_of<std::list, T>::value ||
                                                          is_template_instant_of<std::vector, T>::value ||
                                                          is_template_instant_of<std::queue, T>::value
+                                                         ||is_template_instant_of<QList,T>::value
 >
 {
 };
@@ -62,6 +63,7 @@ template<class T>
 struct is_associat_container: std::integral_constant<bool,
                                                      is_template_instant_of<std::map, T>::value ||
                                                          is_template_instant_of<std::unordered_map, T>::value
+                                                         ||is_template_instant_of<QMap,T>::value
 >
 {
 };

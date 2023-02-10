@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     IntervalWatcher sp;
     sp.start();
     TrackMime data {"json序列化中文测试",1,SpecificType::Sticker,true,false};
-    STRING_STREAM ss;
+    sstream ss;
     TO_JSON(ss,data);
     sp.stop();
     qDebug()<<ss.str().c_str();

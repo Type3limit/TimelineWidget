@@ -118,6 +118,14 @@ void render_array(Stream &ss, const T &v) {
     ss.put(']');
 }
 
+template <typename Stream,typename T>
+std::enable_if_t<is_template_instant_of<QList,T>::value> render_array(Stream &ss, const QList<T> &v) {
+    ss.put('[');
+    join(ss, v.begin(), v.end(), ',',
+         [&ss](const auto &jsv) { render_json_value(ss, jsv); });
+    ss.put(']');
+}
+
 template <typename Stream, typename T, size_t N>
 void render_json_value(Stream &ss, const T (&v)[N]) {
     render_array(ss, v);
@@ -125,6 +133,12 @@ void render_json_value(Stream &ss, const T (&v)[N]) {
 
 template <typename Stream, typename T, size_t N>
 void render_json_value(Stream &ss, const std::array<T, N> &v) {
+    render_array(ss, v);
+}
+
+template <typename Stream, typename T>
+void render_json_value(Stream &ss, const QList<T> &v) {
+
     render_array(ss, v);
 }
 
@@ -786,7 +800,7 @@ template <typename T> void check_result(T val, char const *str) {
 // read json to value
 template <typename T>
 inline std::enable_if_t<is_signed_intergral_like<T>::value>
-read_json(reader_t &rd, T &val, [[maybe_unused]] bool unorder = false) {
+read_json(reader_t &rd, T &val, bool unorder = false) {
     auto &tok = rd.peek();
     switch (tok.type) {
     case token::t_string: {
@@ -982,6 +996,7 @@ inline void read_json(reader_t &rd, std::array<T, N> &val,
                       bool unorder = false) {
     read_array(rd, val);
 }
+
 
 template <typename T>
 std::enable_if_t<is_emplace_back_able<T>::value> emplace_back(T &val) {

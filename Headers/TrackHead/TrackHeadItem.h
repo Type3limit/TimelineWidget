@@ -12,7 +12,7 @@ class TrackHeadItem: public QGraphicsItem
 {
 public:
     explicit TrackHeadItem(QGraphicsItem* parent);
-    explicit TrackHeadItem(const TrackMime& curData);
+    explicit TrackHeadItem(const TrackMime& curData,QGraphicsItem* parent= nullptr);
     TrackMime getMimeData() const;
     void forceUpdate();
 protected:

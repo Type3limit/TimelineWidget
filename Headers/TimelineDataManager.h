@@ -26,6 +26,7 @@ private:
     volatile ulong m_ulCurPos = 0;
     ///最大的尺度帧数
     volatile ulong m_maxFrameTick = 9;
+
     QMap<QString,TrackMime> m_tracks;
     QMutex m_sync;
     QWaitCondition m_cond;

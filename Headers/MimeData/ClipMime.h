@@ -25,7 +25,70 @@ struct ClipMime
     QString sourceFile;
     ///clip extension info(stay Temporarily)
     QString extension;
+
+    ClipMime() = default;
+    ClipMime(const ClipMime &other)
+    {
+        id = other.id;
+        trackId = other.trackId;
+        startPos = other.startPos;
+        duration = other.duration;
+        type = other.type;
+        groupId = other.groupId;
+        sourceFile = other.sourceFile;
+        extension = other.extension;
+    }
+
+#pragma region overloadOperator
+    bool operator<(const ClipMime &other) const
+    {
+        return this->startPos < other.startPos;
+    }
+    ClipMime& operator=(const ClipMime &other)
+    {
+        id = other.id;
+        trackId = other.trackId;
+        startPos = other.startPos;
+        duration = other.duration;
+        type = other.type;
+        groupId = other.groupId;
+        sourceFile = other.sourceFile;
+        extension = other.extension;
+        return *this;
+    }
+    bool operator==(const ClipMime &other) const
+    {
+        return std::tie(id, trackId, type, startPos, duration, sourceFile, groupId, extension) ==
+            std::tie(other.id,
+                     other.trackId,
+                     other.type,
+                     other.startPos,
+                     other.duration,
+                     other.sourceFile,
+                     other.groupId,
+                     other.extension);
+    }
+#pragma endregion
+#pragma region func
+    QString toString() const
+    {
+        return "ClipMime{id:" + this->id + " track id:" + this->trackId + " type:"
+            + QString::number(this->type) + " startPos:" + QString::number(this->startPos)
+            + " duration:" + QString::number(this->duration) + " group id:" + this->groupId
+            + " source file:" + this->sourceFile + " extension:" + this->extension + "}";
+    }
+
+    bool isDefaultData() const
+    {
+        return isDefaultData(*this);
+    }
+    static bool isDefaultData(const ClipMime &other)
+    {
+        return (0 == (other.id.length())) && (other.trackId.length() == 0) && (other.type == SpecificType::None)
+            && other.startPos == 0 && other.duration == 0;
+    }
+#pragma endregion
 };
 
-REFLECTION(ClipMime,id,trackId,startPos,duration,type,groupId,sourceFile,extension);
+REFLECTION(ClipMime, id, trackId, startPos, duration, type, groupId, sourceFile, extension);
 #endif //CLIPMIME_H

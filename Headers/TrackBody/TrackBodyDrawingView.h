@@ -16,6 +16,7 @@ class TrackBodyDrawingView: public SelfContainedSceneView
     Q_OBJECT
 public:
     explicit TrackBodyDrawingView(QWidget*parent = nullptr);
+    ~TrackBodyDrawingView() override;
     ///将区域滚动到指针位置
     void scrollToCursor();
 
@@ -39,6 +40,7 @@ public slots:
 public slots:
     void ScrolledTo(int pos);
     void ScrollToPos(int pos);
+    void ClipChanged(const QString& trackKey,const QString& clipKey,int mode);
     signals:
     void ScrollChanged(int pos);
 

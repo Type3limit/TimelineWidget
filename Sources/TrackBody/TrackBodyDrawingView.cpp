@@ -22,8 +22,18 @@ TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     connect(horizontalScrollBar(), &QScrollBar::sliderMoved, this, &TrackBodyDrawingView::ScrolledTo);
     connect(TimelineInstance(), &TimelineWidget::PositionChanged,
             m_anchorBody, &AnchorBodyItem::OnTimelinePosChanged, Qt::ConnectionType::QueuedConnection);
+    connect (TimelineInstance(),&TimelineWidget::TrackClipChanged,this,&TrackBodyDrawingView::ClipChanged);
 }
-
+TrackBodyDrawingView::~TrackBodyDrawingView()
+{
+    SAFE_DELETE(m_anchorBody);
+    ExtensionMethods::SourcesExtension<QString>::eachBy(m_bodyItems.keys(),[&](const QString& key)->void
+    {
+        auto curItem = m_bodyItems[key];
+        SAFE_DELETE(curItem);
+    });
+    m_bodyItems.clear();
+}
 void TrackBodyDrawingView::ScrolledTo(int pos)
 {
     updateGeometry();
@@ -175,5 +185,21 @@ void TrackBodyDrawingView::ScrollToPos(int pos)
 {
     horizontalScrollBar()->setValue(pos);
 }
+
+void TrackBodyDrawingView::ClipChanged(const QString &trackKey,const QString& clipKey,int mode)
+{
+    auto curTrack =getTrackBody(trackKey);
+    if(!curTrack)
+        return;
+    if(mode>0)
+    {
+        curTrack->addClipItem(clipKey);
+    }
+    else
+    {
+        curTrack->removeClipItem(clipKey);
+    }
+}
+
 
 

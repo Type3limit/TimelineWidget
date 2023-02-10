@@ -52,7 +52,6 @@ add_executable(TimelineWidget main.cpp
         Headers/TrackHead/TrackHeadItem.h
         Sources/TrackBody/TrackBodyItem.cpp
         Headers/TrackBody/TrackBodyItem.h
-        Sources/MimeData/TrackMime.cpp
         Headers/MimeData/TrackMime.h
         Extensions/detail/itoa.h
         Extensions/detail/string_stream.h
@@ -63,7 +62,13 @@ add_executable(TimelineWidget main.cpp
         Extensions/JsonSerialization.h
         Extensions/XmlSerialization.h
         Extensions/JsonSerialization.h
-        Extensions/XmlSerialization.h Extensions/IntervalWatcher.h Sources/TimelineDataManager.cpp Headers/TimelineDataManager.h Headers/MimeData/ClipMime.h)
+        Extensions/XmlSerialization.h
+        Extensions/IntervalWatcher.h
+        Sources/TimelineDataManager.cpp
+        Headers/TimelineDataManager.h
+        Headers/MimeData/ClipMime.h
+        Sources/Clip/ClipItem.cpp
+        Headers/Clip/ClipItem.h Headers/MimeData/TimelineMime.h)
 
 target_link_libraries(TimelineWidget
         Qt5::Core

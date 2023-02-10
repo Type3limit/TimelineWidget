@@ -25,7 +25,7 @@ public:
     ///get the first element that matched with condition,need pass the total count of array,if there has no matched one,return defaultValue
     static inline finderType firstOf(const finderType *sources,
                                      const int count,
-                                     std::function<bool(finderType)> MatchFunction,
+                                     const std::function<bool(finderType)>& MatchFunction,
                                      const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -39,7 +39,7 @@ public:
     }
     ///get the first element of QList that matched with condition,if there has no matched one,return defaultValue
     static inline finderType firstOf(const QList<finderType> &sources,
-                                     std::function<bool(finderType)> MatchFunction,
+                                     const std::function<bool(finderType)>& MatchFunction,
                                      const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -56,7 +56,7 @@ public:
     ///get the last element that matched with condition,need pass the total count of array,if there has no marched one,return defaultValue
     static inline finderType lastOf(const finderType *sources,
                                     const int count,
-                                    std::function<bool(finderType)> MatchFunction,
+                                    const std::function<bool(finderType)>& MatchFunction,
                                     const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -69,7 +69,7 @@ public:
     }
     ///get the last element of QList that matched with condition,if there has no marched one,return defaultValue
     static inline finderType lastOf(const QList<finderType> &sources,
-                                    std::function<bool(finderType)> MatchFunction,
+                                    const std::function<bool(finderType)>& MatchFunction,
                                     const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -84,7 +84,7 @@ public:
     }
     ///get elements which is matched the condition,need pass the total count of array,if there has no matched,return an empty sources
     static inline QList<finderType>
-    where(const finderType *sources, const int count, std::function<bool(finderType)> MatchFunction)
+    where(const finderType *sources, const int count,const std::function<bool(finderType)>& MatchFunction)
     {
         QList<finderType> findResult;
         for (int i = 0; i < count; i++) {
@@ -96,7 +96,7 @@ public:
     }
     ///get elements of QList which is marched the condition,if there has no marched,return an empty sources
     static inline QList<finderType>
-    where(const QList<finderType> &sources, std::function<bool(finderType)> MatchFunction)
+    where(const QList<finderType> &sources,const std::function<bool(finderType)>& MatchFunction)
     {
         QList<finderType> findResult;
         auto begin = sources.begin();
@@ -109,7 +109,7 @@ public:
         return findResult;
     }
     ///traverse element in arrays and execute the same function
-    static inline void eachBy(const QList<finderType> &sources, std::function<void(finderType)> executeFunc)
+    static inline void eachBy(const QList<finderType> &sources,const std::function<void(finderType)>& executeFunc)
     {
         auto begin = sources.begin();
         while (begin != sources.end()) {
@@ -118,7 +118,7 @@ public:
         }
     }
     ///traverse element in arrays and execute the same function
-    static inline void eachBy(const finderType *sources, int totalCount, std::function<void(finderType)> executeFunc)
+    static inline void eachBy(const finderType *sources, int totalCount,const std::function<void(finderType)>& executeFunc)
     {
         for (int i = 0; i < totalCount; i++) {
             executeFunc(sources[i]);

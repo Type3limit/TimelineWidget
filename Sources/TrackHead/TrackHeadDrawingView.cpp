@@ -14,6 +14,7 @@ TrackHeadDrawingView::TrackHeadDrawingView(QWidget *parent)
 }
 bool TrackHeadDrawingView::addTrackHead( const TrackMime& originData)
 {
+    //qDebug()<<"add head with key:"<<originData.id;
     auto key = originData.id;
     if(m_headItems.contains(key))
     {

@@ -36,8 +36,9 @@ const int TIME_TICK_FONT_SIZE = 12;
 const int SCALE_CODE_FONT_SIZE = 20;
 
 ///轨道高度
-const int TRACK_HEIGHT = 30;
+const int TRACK_HEIGHT = 50;
 
+///自动滚动的单次距离（以及触发自动滚动的宽度）
 const int SCROLL_DISTANCE = 10;
 
 ///时间线锚点宽度
@@ -57,6 +58,14 @@ const QColor BACK_LIGHT_COLOR= QColor(45,45,53);
 const QColor ANCHOR_COLOR = QColor(230, 75, 61);
 ///黑笔
 const QColor BLACK_COLOR = QColor(0,0,0);
+
+///效果切片色
+const QColor EFFECT_CLIP_COLOR = QColor(157,171,194);
+///字幕切片色
+const QColor SUBTITLE_CLIP_COLOR = QColor(2,143,94);
+///贴纸切片色
+const QColor STICKER_CLIP_COLOR = QColor(86,105,243);
+
 ///用于Ruler上的数值转换
 static QString FrameToTimeCode(ulong curFrame, int FrameRate)
 {

@@ -12,13 +12,26 @@ TrackBodyItem::TrackBodyItem(QGraphicsItem *parent)
 {
 
 }
-TrackBodyItem::TrackBodyItem(const TrackMime &curData)
+TrackBodyItem::TrackBodyItem(const TrackMime &curData,QGraphicsItem* parent):
+QGraphicsItem(parent)
 {
     m_mimeKey = curData.id;
 }
+
+TrackBodyItem::~TrackBodyItem()
+{
+    ExtensionMethods::SourcesExtension<QString>::eachBy(m_clips.keys(),[&](const QString& key)->void{
+        auto curItem =m_clips[key];
+        SAFE_DELETE(curItem);
+    });
+    m_clips.clear();
+}
+
 TrackMime TrackBodyItem::getMimeData() const
 {
-    return TimelineInstance()->getTrackData(m_mimeKey);
+    TrackMime data;
+    TimelineInstance()->getTrackData(data,m_mimeKey);
+    return data;
 }
 void TrackBodyItem::forceUpdate()
 {
@@ -55,3 +68,22 @@ void TrackBodyItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setBrush(QBrush((mime.index%2==1)?BACK_LIGHT_COLOR:BACK_DEEP_COLOR));
     painter->drawRect(curArea.left(), yIndex, maxWidth, TRACK_HEIGHT);
 }
+void TrackBodyItem::addClipItem(const QString &itemKey)
+{
+    if(itemKey.isEmpty())
+        return;
+    auto curItem = new ClipItem(itemKey,this);
+    curItem->insertToTrack(m_mimeKey);
+    m_clips.insert(itemKey,curItem);
+    this->scene()->addItem(curItem);
+}
+void TrackBodyItem::removeClipItem(const QString &itemKey)
+{
+    if(!m_clips.contains(itemKey))
+        return;
+    auto curItem = m_clips[itemKey];
+    curItem->removeFromTrack();
+    m_clips.remove(itemKey);
+    delete curItem;
+}
+

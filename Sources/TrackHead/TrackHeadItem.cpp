@@ -12,7 +12,8 @@ TrackHeadItem::TrackHeadItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)
 {
 }
-TrackHeadItem::TrackHeadItem(const TrackMime &curData)
+TrackHeadItem::TrackHeadItem(const TrackMime &curData,QGraphicsItem *parent)
+    : QGraphicsItem(parent)
 {
     m_mimeKey = curData.id;
 }
@@ -52,7 +53,9 @@ void TrackHeadItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
 }
 TrackMime TrackHeadItem::getMimeData() const
 {
-    return TimelineInstance()->getTrackData(m_mimeKey);
+    TrackMime data;
+    TimelineInstance()->getTrackData(data,m_mimeKey);
+    return data;
 }
 void TrackHeadItem::forceUpdate()
 {
