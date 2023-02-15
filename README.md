@@ -10,7 +10,7 @@ all the widgets can be serialize to json or xml ,which is also can deserialize b
 
 ## Notice:
 
-Json serialize tool is come from a cool repositry:[iguana](https://github.com/qicosmos/iguana),special thanks for [qicosmos](https://github.com/qicosmos).
+Json serialize tool is come from a cool repository:[iguana](https://github.com/qicosmos/iguana),special thanks for [qicosmos](https://github.com/qicosmos).
 
 
 
