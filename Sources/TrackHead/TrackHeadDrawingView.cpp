@@ -36,7 +36,7 @@ bool TrackHeadDrawingView::deleteTrackHead(const QString& key)
         SAFE_DELETE(org);
         return true;
     }
-    qDebug()<<"delete track head failed!key:"<<key;
+    qDebug()<<"delete track head failed!key:["<<key<<"]is not exist";
     return false;
 }
 TrackHeadItem *TrackHeadDrawingView::getTrackHead(const QString& key)

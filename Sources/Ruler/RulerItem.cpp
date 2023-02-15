@@ -23,7 +23,12 @@ void RulerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 
     painter->drawLines(m_lines);
     int drawCount = m_DrawEnd - m_DrawStart;
-    for(int i =0;i<m_pointText.count();i++)
+    int startPos = (int)(m_updateRect.x()/(10 * MIN_TICK_WIDTH))-1;
+    startPos = startPos<0?0:startPos;
+    int endPos = (int)((m_updateRect.x()+m_updateRect.width())/(10 * MIN_TICK_WIDTH))+1;
+    endPos = endPos>=m_pointText.length()?m_pointText.length()-1:endPos;
+
+    for(int i=startPos;i<=endPos;i++)
     {
            painter->drawText(QPoint(i*10 * MIN_TICK_WIDTH, TOP_MARGIN),m_pointText[i]);
     }
@@ -32,14 +37,7 @@ void RulerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
 }
 QRectF RulerItem::boundingRect() const
 {
-    if (!CHECK_POINTER<TimelineWidget>()) {
-        return {0, 0, 0, 0};
-    }
-    auto maxDuration = TimelineInstance()->maxDuration();
-    auto frameTick = TimelineInstance()->frameTick();
-    auto regionRect = TimelineInstance()->getArea(TimelineWidget::Area::RightTop);
-    auto drawingWidth = (int)(maxDuration / frameTick) * MIN_TICK_WIDTH;
-    return {0, 0, (double)drawingWidth, regionRect.height()};
+    return m_updateRect;
 }
 void RulerItem::OnLenthChange()
 {
@@ -50,6 +48,7 @@ void RulerItem::OnLenthChange()
     auto regionRect = TimelineInstance()->getArea(TimelineWidget::Area::RightTop);
     auto maxDrawingHeight = (int)(regionRect.height() * (PERCENT_OF_TICK / 100.0));
     auto drawingCount = (int)(maxDuration / frameTick);
+    auto drawingWidth = (int)(maxDuration / frameTick) * MIN_TICK_WIDTH;
     for (int i = 0; i < drawingCount; i++) {
         int iHeight = i % 10 ? (maxDrawingHeight / 2) : (maxDrawingHeight);//half of max
         m_lines.push_back(QLine(i * MIN_TICK_WIDTH,
@@ -61,4 +60,14 @@ void RulerItem::OnLenthChange()
             m_pointText.push_back(FrameToTimeCode((int)(i * frameTick), FRAME_PER_SECOND));
         }
     }
+    prepareGeometryChange();
+}
+RulerItem::RulerItem(QGraphicsObject *parent): QGraphicsItem(parent)
+{
+    //setCacheMode(CacheMode::DeviceCoordinateCache);
+}
+void RulerItem::setUpdateRect(const QRectF &dest)
+{
+    m_updateRect = dest;
+    //qDebug()<<m_updateRect;
 }

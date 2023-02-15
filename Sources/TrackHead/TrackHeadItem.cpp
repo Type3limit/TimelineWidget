@@ -48,7 +48,7 @@ void TrackHeadItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setBrush(QBrush(BACK_DEEP_COLOR));
     painter->fillRect(QRectF(0, yIndex, curArea.width(), TRACK_HEIGHT),QBrush(BACK_DEEP_COLOR));
     painter->setPen(QPen(Qt::white));
-    painter->drawText(QRectF(0, yIndex, curArea.width(), TRACK_HEIGHT),"预留");
+    //painter->drawText(QRectF(0, yIndex, curArea.width(), TRACK_HEIGHT),"预留");
     //TODO:draw other button or what in track head
 }
 TrackMime TrackHeadItem::getMimeData() const

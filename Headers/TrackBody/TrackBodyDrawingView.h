@@ -19,12 +19,13 @@ public:
     ~TrackBodyDrawingView() override;
     ///将区域滚动到指针位置
     void scrollToCursor();
-
+    void setDrawingAreaSize(int width, int height) override;
 protected:
     void wheelEvent(QWheelEvent *event)override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+
 public:
     ///添加一个项
     bool addTrackBody(const TrackMime& originData);
@@ -41,6 +42,7 @@ public slots:
     void ScrolledTo(int pos);
     void ScrollToPos(int pos);
     void ClipChanged(const QString& trackKey,const QString& clipKey,int mode);
+    void singleClipChanged(const QString& trackKey,const QString& clipKey);
     signals:
     void ScrollChanged(int pos);
 

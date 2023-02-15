@@ -179,7 +179,28 @@ public:
         }
         return result;
     }
-
+    ///in QList,take a Res type result for each finderType
+    template<typename Res>
+    static inline QList<Res> select (const QList<finderType>& sources,std::function<Res(finderType)> selectFunc)
+    {
+        QList<Res> res;
+        for(auto i:sources)
+        {
+            res.push_back(selectFunc);
+        }
+        return res;
+    }
+    ///in arrays,task a Res type result for each finderType
+    template<typename Res>
+    static inline QList<Res> select (const finderType* sources,int sourcesCount,std::function<Res(finderType)> selectFunc)
+    {
+        QList<Res> res;
+        for(int i = 0;i<sourcesCount;i++)
+        {
+            res.push_back(sources[i]);
+        }
+        return res;
+    }
 };
 
 ///

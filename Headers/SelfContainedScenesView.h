@@ -13,8 +13,8 @@ class SelfContainedSceneView: public QGraphicsView
 public:
     explicit SelfContainedSceneView(QWidget* parent = nullptr)
     {
-        m_scene = new QGraphicsScene(this);
-        setScene(m_scene);
+
+        setScene( getScene());
         setStyleSheet("    border:  1px solid rgb(0,0,0);\n"
                       "    background-color: #28282E;\n"
                       "    font-family: \"Cascadia Code\";");//"    border-radius: 5px;\n"
@@ -153,6 +153,17 @@ public:
     virtual QSize getSizeofDrawingArea()
     {
         return {m_nWidth,m_nHeight};
+    }
+    ///获取可视区
+    virtual QRectF getViewPortRect()
+    {
+        return mapToScene(viewport()->geometry()).boundingRect();
+    }
+
+    virtual QGraphicsScene* getScene()
+    {
+        m_scene = new QGraphicsScene(this);
+        return m_scene;
     }
 protected:
     QGraphicsScene* m_scene = nullptr;

@@ -19,7 +19,10 @@ RulerDrawingView::RulerDrawingView(QWidget *parent)
     //scene()->addItem(m_anchorHead);
     auto timelineWidget = TimelineInstance();
     connect(timelineWidget, &TimelineWidget::PositionChanged, m_anchorHead,
-            &AnchorHeadItem::OnTimelinePosChanged, Qt::ConnectionType::QueuedConnection);
+            [&](ulong curpos)->void{
+             m_ruler->setUpdateRect(getViewPortRect());
+             m_anchorHead->OnTimelinePosChanged(curpos);
+        }, Qt::ConnectionType::QueuedConnection);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 #pragma region setStyle
     horizontalScrollBar()->setStyleSheet(" QScrollBar:horizontal\n"
@@ -85,6 +88,7 @@ void RulerDrawingView::OnTrackBodyScroll(int pos)
 {
     horizontalScrollBar()->setValue(pos);
     updateGeometry();
+    m_ruler->setUpdateRect( getViewPortRect());
     if(m_anchorHead)
     {
         m_anchorHead->forceUpdate();
@@ -135,6 +139,7 @@ void RulerDrawingView::mouseMoveEvent(QMouseEvent *evt)
 }
 void RulerDrawingView::rulerUpdate()
 {
+    m_ruler->setUpdateRect( getViewPortRect());
     m_ruler->OnLenthChange();
 }
 void RulerDrawingView::setDrawingAreaSize(int width, int height)

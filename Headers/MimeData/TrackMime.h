@@ -24,15 +24,6 @@ struct TrackMime
     ///clips in track
     std::vector<ClipMime> clips;
     TrackMime()= default;
-
-    TrackMime(const char *const string, int i, SpecificType type,bool visible=true, bool locked=false)
-    {
-        id =(string);
-        index= i;
-        this->type = type;
-        isVisible = visible;
-        isLocked = locked;
-    }
     TrackMime(const QString& string, int i, SpecificType type, bool visible=true, bool locked=false)
     {
         id = string;
@@ -111,7 +102,7 @@ private:
         {
             return itr.id==key;
         });
-        return itr == clips.end();
+        return itr != clips.end();
     }
 
 public:
@@ -161,9 +152,9 @@ public:
     ///变更指定clip key 的信息
     void setClip(const QString& key ,const ClipMime& data)
     {
-        ClipMime curData;
-       if(getClipWithKey(key,curData))
-        curData = ClipMime(data);
+        std::vector<ClipMime>::iterator itr;
+        if(getClipWithItr(key,itr))
+        *itr = ClipMime(data);
     }
 #pragma endregion
 };

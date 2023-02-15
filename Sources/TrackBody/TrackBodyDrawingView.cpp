@@ -23,6 +23,8 @@ TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     connect(TimelineInstance(), &TimelineWidget::PositionChanged,
             m_anchorBody, &AnchorBodyItem::OnTimelinePosChanged, Qt::ConnectionType::QueuedConnection);
     connect (TimelineInstance(),&TimelineWidget::TrackClipChanged,this,&TrackBodyDrawingView::ClipChanged);
+    connect(TimelineInstance(),&TimelineWidget::ClipUpdated,this,
+            &TrackBodyDrawingView::singleClipChanged,Qt::ConnectionType::QueuedConnection);
 }
 TrackBodyDrawingView::~TrackBodyDrawingView()
 {
@@ -36,7 +38,8 @@ TrackBodyDrawingView::~TrackBodyDrawingView()
 }
 void TrackBodyDrawingView::ScrolledTo(int pos)
 {
-    updateGeometry();
+    auto curRect = getViewPortRect();
+    update(QRect(curRect.x(),curRect.y(),curRect.width(),curRect.height()));
     emit ScrollChanged(pos);
 }
 
@@ -46,6 +49,8 @@ void TrackBodyDrawingView::wheelEvent(QWheelEvent *event)
         QGraphicsView::wheelEvent(event);
     }
     event->ignore();
+    auto curRect = getViewPortRect();
+    update(QRect(curRect.x(),curRect.y(),curRect.width(),curRect.height()));
 }
 void TrackBodyDrawingView::mouseMoveEvent(QMouseEvent *evt)
 {
@@ -130,7 +135,9 @@ void TrackBodyDrawingView::scrollToCursor()
     leftPos = leftPos < 0 ? 0 : leftPos;
     horizontalScrollBar()->setValue((int)leftPos);
     emit ScrollChanged((int)(leftPos));
-    updateGeometry();
+    update();
+    //auto updateRect = getViewPortRect();
+    //update(updateRect.x(),updateRect.y(),updateRect.width(),updateRect.height());
 }
 bool TrackBodyDrawingView::addTrackBody( const TrackMime &originData)
 {
@@ -154,7 +161,7 @@ bool TrackBodyDrawingView::deleteTrackBody(const QString &key)
         SAFE_DELETE(org);
         return true;
     }
-    qDebug()<<"delete track head failed!key:"<<key;
+    qDebug()<<"delete track head failed!,key:["<<key<<"]is not exist";
     return false;
 }
 TrackBodyItem *TrackBodyDrawingView::getTrackBody(const QString &key)
@@ -184,6 +191,7 @@ void TrackBodyDrawingView::OnTrackHeadUpdate(const QString &key)
 void TrackBodyDrawingView::ScrollToPos(int pos)
 {
     horizontalScrollBar()->setValue(pos);
+
 }
 
 void TrackBodyDrawingView::ClipChanged(const QString &trackKey,const QString& clipKey,int mode)
@@ -199,6 +207,20 @@ void TrackBodyDrawingView::ClipChanged(const QString &trackKey,const QString& cl
     {
         curTrack->removeClipItem(clipKey);
     }
+    updateGeometry();
+}
+void TrackBodyDrawingView::singleClipChanged(const QString &trackKey, const QString &clipKey)
+{
+    auto curTrack =getTrackBody(trackKey);
+    if(!curTrack)
+        return;
+    auto curRect = getViewPortRect();
+    curTrack->updateClipItem(clipKey);
+    update(curRect.x(),curRect.y(),curRect.width(),curRect.height());
+}
+void TrackBodyDrawingView::setDrawingAreaSize(int width, int height)
+{
+    SelfContainedSceneView::setDrawingAreaSize(width, height);
 }
 
 

@@ -19,7 +19,7 @@ AnchorHeadItem::AnchorHeadItem(QGraphicsItem *object)
         QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemSendsGeometryChanges);
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
-    setCacheMode(QGraphicsItem::CacheMode::DeviceCoordinateCache);
+    //setCacheMode(QGraphicsItem::CacheMode::DeviceCoordinateCache);
     connect(TimelineInstance(), &TimelineWidget::FrameTickChanged, this, [&](auto data) -> void
     { this->prepareGeometryChange(); });
 

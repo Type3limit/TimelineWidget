@@ -68,7 +68,7 @@ add_executable(TimelineWidget main.cpp
         Headers/TimelineDataManager.h
         Headers/MimeData/ClipMime.h
         Sources/Clip/ClipItem.cpp
-        Headers/Clip/ClipItem.h Headers/MimeData/TimelineMime.h)
+        Headers/Clip/ClipItem.h Headers/MimeData/TimelineMime.h Sources/Clip/ShadowClipItem.cpp Headers/Clip/ShadowClipItem.h)
 
 target_link_libraries(TimelineWidget
         Qt5::Core

@@ -5,6 +5,7 @@
 #ifndef CLIPMIME_H
 #define CLIPMIME_H
 #include <QUuid>
+#include <utility>
 #include "TimelineDefination.h"
 #include "JsonSerialization.h"
 struct ClipMime
@@ -23,7 +24,7 @@ struct ClipMime
     QString groupId;
     ///clip source file info
     QString sourceFile;
-    ///clip extension info(stay Temporarily)
+    ///clip extension info(stay temporarily)
     QString extension;
 
     ClipMime() = default;
@@ -37,6 +38,17 @@ struct ClipMime
         groupId = other.groupId;
         sourceFile = other.sourceFile;
         extension = other.extension;
+    }
+    ClipMime(const QString& id,const QString& trackId,ulong startPos,ulong duration,SpecificType type,const QString& groupId="",const QString& sourceFile="",const QString& extension="")
+    {
+        this->id = id;
+        this->trackId = trackId;
+        this->startPos = startPos;
+        this->duration = duration;
+        this->type = type;
+        this->groupId= groupId;
+        this->sourceFile = sourceFile;
+        this->extension = extension;
     }
 
 #pragma region overloadOperator
