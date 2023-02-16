@@ -49,7 +49,9 @@ public:
     QRectF getArea(Area pos) const;
     ///获取可视区范围矩形
     QRectF getViewPort(Area pos)const;
-
+    ///强制某一个区域更新
+    void forceUpdate(Area pos);
+    ///获取时间线源数据
     TimelineMime getTimeMime();
 public:
 #pragma region DataAccess
@@ -57,6 +59,8 @@ public:
     ulong frameTick() const;
     ///设置时间单位尺
     void setFrameTick(ulong curData, bool shouldEmitSignal = true);
+    ///获取最大时间单位尺
+    ulong maxFrameTick()const;
     ///获取时间线最大长度（绘制区终点）
     ulong maxDuration() const;
     ///设置时间线最大长度（绘制区终点）
@@ -75,7 +79,7 @@ public:
     ///获取指定位置的Track
     TrackMime getTrackData(int index);
     ///添加轨道(-1 to tail)
-    bool addTrack(QUuid key, int trackType, int index);
+    bool addTrack(const QString& key, int trackType, int index);
     ///删除轨道
     void removeTrack(const QString& key);
 #pragma endregion

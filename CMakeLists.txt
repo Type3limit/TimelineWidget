@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+﻿cmake_minimum_required(VERSION 3.24)
 project(TimelineWidget)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -6,9 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
-
-#set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/Forms
@@ -64,11 +62,12 @@ add_executable(TimelineWidget main.cpp
         Extensions/JsonSerialization.h
         Extensions/XmlSerialization.h
         Extensions/IntervalWatcher.h
-        Sources/TimelineDataManager.cpp
-        Headers/TimelineDataManager.h
         Headers/MimeData/ClipMime.h
         Sources/Clip/ClipItem.cpp
-        Headers/Clip/ClipItem.h Headers/MimeData/TimelineMime.h Sources/Clip/ShadowClipItem.cpp Headers/Clip/ShadowClipItem.h)
+        Headers/Clip/ClipItem.h
+        Headers/MimeData/TimelineMime.h
+        Sources/Clip/ShadowClipItem.cpp
+        Headers/Clip/ShadowClipItem.h)
 
 target_link_libraries(TimelineWidget
         Qt5::Core

@@ -17,24 +17,25 @@ MainWindow::MainWindow(QWidget *parent)
     ui->widget->setMaxDuration(20000);
     //指针位置
     ui->widget->setCurPos(150);
-    ui->widget->setFrameTick(300);
-    QString ids[5];
-    for(int i =0;i<5;i++)
+
+    QString ids[3];
+    for(int i =0;i<3;i++)
     {
-        ids[i] = QUuid::createUuid().toString();
-        ui->widget->addTrack(QUuid::fromString(ids[i]),(SpecificType)i%3+1,-1);
+        ids[i] = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
+        ui->widget->addTrack(ids[i],(SpecificType)i%3+1,-1);
     }
 
 
-    for(int i =0 ;i<60;i++)
+    for(int i =0 ;i<1;i++)
     {
-        for(int j = 0;j<5;j++)
+        for(int j = 0;j<3;j++)
         {
-            ClipMime clip(QUuid::createUuid().toString(),ids[j],(ulong)i*200+i*100,(ulong)200,(static_cast<SpecificType>(i%3+1)));
+            ClipMime clip(QUuid::createUuid().toString().remove("{").remove("}").remove("-"),ids[j%3],(ulong)i*200+i*100,(ulong)200,(static_cast<SpecificType>(i%3+1)));
             ui->widget->addClip(j,clip);
         }
     }
 
+    ui->widget->setFrameTick(35);
 }
 
 MainWindow::~MainWindow()
