@@ -142,10 +142,10 @@ public:
     ///拿到指定切片信息
     ClipMime getClip(const QString &key)
     {
-        ClipMime data;
-        if (!getClipWithKey(key, data))
+        std::vector<ClipMime>::iterator itr;
+        if (!getClipWithItr(key, itr))
             return {};
-        return data;
+        return *itr;
     }
     ///变更指定clip key 的信息
     void setClip(const QString &key, const ClipMime &data)

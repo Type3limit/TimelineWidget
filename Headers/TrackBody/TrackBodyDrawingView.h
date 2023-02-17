@@ -10,6 +10,7 @@
 #include "SelfContainedScenesView.h"
 #include "AnchorBodyItem.h"
 #include "TrackBodyItem.h"
+#include "TrackSelectionItem.h"
 #include <QScrollBar>
 class TrackBodyDrawingView: public SelfContainedSceneView
 {
@@ -49,8 +50,12 @@ public slots:
 
 private:
     volatile bool m_bIsRightButtonPressed = false;
+    volatile bool m_bIsMultiSelectionMode = false;
+    QPointF m_selectionStart;
+    QPointF m_selectionEnd;
     QPointF m_prePos;
     AnchorBodyItem* m_anchorBody = nullptr;
+    TrackSelectionItem* m_selectObj = nullptr;
 private:
     QMap<QString,TrackBodyItem*> m_bodyItems;
 };

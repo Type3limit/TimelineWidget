@@ -22,9 +22,10 @@ Q_OBJECT
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-
+    void showEvent(QShowEvent *event) override;
 private:
     Ui::MainWindow *ui;
+    volatile bool isFirstShow = true;
 };
 
 

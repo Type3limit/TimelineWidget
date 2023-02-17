@@ -69,19 +69,7 @@ void TimelineWidget::wheelEvent(QWheelEvent *event)
     auto curTick = event->angleDelta().y() < 0 ? (m_timelineData.m_ulFrameTick <= WHEEL_SCALE_DELTA ? 1 :
                                                   m_timelineData.m_ulFrameTick - WHEEL_SCALE_DELTA) : (
                        m_timelineData.m_ulFrameTick + WHEEL_SCALE_DELTA);
-    setFrameTick(curTick > m_timelineData.m_maxFrameTick ? m_timelineData.m_maxFrameTick : curTick);
-    auto frameWidth = (m_timelineData.m_ulMaxDuration / m_timelineData.m_ulFrameTick) * MIN_TICK_WIDTH;
-    auto widthInUse = frameWidth;
-
-    if (frameWidth < getArea(Area::RightTop).width()) {
-        widthInUse = (ulong)(getArea(Area::RightTop).width());
-    }
-    if (m_rulerView) {
-        m_rulerView->setDrawingAreaSize((int)widthInUse, ui->RightTopRegion->height() - WIDGET_MARGIN * 2);
-    }
-    if (m_trackBodyView) {
-        m_trackBodyView->setDrawingAreaSize((int)widthInUse, ui->RightBottomRegion->height() - WIDGET_MARGIN * 2);
-    }
+    setFrameTick(curTick > maxFrameTick() ? maxFrameTick() : curTick);
 
     m_trackBodyView->scrollToCursor();
     m_rulerView->rulerUpdate();
@@ -159,15 +147,12 @@ QRectF TimelineWidget::getViewPort(TimelineWidget::Area pos) const
     }
     case LeftBottom: {
         return m_trackHeadView->getViewPortRect();
-        break;
     }
     case RightTop: {
         return m_rulerView->getViewPortRect();
-        break;
     }
     case RightBottom: {
         return m_trackBodyView->getViewPortRect();
-        break;
     }
     default:
         return {};
@@ -176,10 +161,16 @@ QRectF TimelineWidget::getViewPort(TimelineWidget::Area pos) const
 
 void TimelineWidget::updateMaxTick()
 {
-    m_timelineData.m_maxFrameTick =
-        qRound((double)(m_timelineData.m_ulMaxDuration * MIN_TICK_WIDTH) / getArea(Area::RightTop).width());
-    m_timelineData.m_maxFrameTick =
-        m_timelineData.m_maxFrameTick <= WHEEL_SCALE_DELTA ? 1 : m_timelineData.m_maxFrameTick - WHEEL_SCALE_DELTA;
+    auto curMax =
+        qRound((double)(maxDuration() * MIN_TICK_WIDTH) / getArea(Area::RightTop).width());
+    curMax = curMax <= WHEEL_SCALE_DELTA ? 1 : curMax- WHEEL_SCALE_DELTA;
+
+    if(curMax>=3)
+    {
+        curMax = curMax%2?curMax-1:curMax-2;
+    }
+    //qDebug()<<"with max frame:"<<curMax;
+    m_timelineData.m_maxFrameTick = curMax;
 }
 
 #pragma region get property
@@ -217,10 +208,23 @@ void TimelineWidget::setCurPos(ulong pos, bool shouldEmitSignal)
         }
     }
 }
+
 void TimelineWidget::setFrameTick(ulong curData, bool shouldEmitSignal)
 {
     if (m_timelineData.m_ulFrameTick != curData) {
         m_timelineData.m_ulFrameTick = curData;
+        auto frameWidth = (maxDuration() / frameTick()) * MIN_TICK_WIDTH;
+        auto widthInUse = frameWidth;
+
+        if (frameWidth < getArea(Area::RightTop).width()) {
+            widthInUse = (ulong)(getArea(Area::RightTop).width());
+        }
+        if (m_rulerView) {
+            m_rulerView->setDrawingAreaSize((int)widthInUse, ui->RightTopRegion->height() - WIDGET_MARGIN * 2);
+        }
+        if (m_trackBodyView) {
+            m_trackBodyView->setDrawingAreaSize((int)widthInUse, ui->RightBottomRegion->height() - WIDGET_MARGIN * 2);
+        }
         if (shouldEmitSignal) {
             emit FrameTickChanged(m_timelineData.m_ulFrameTick);
         }
@@ -249,12 +253,12 @@ bool TimelineWidget::addTrack(const QString &curKey, int trackType, int index = 
             alterTrackData(itr.id, itr);
         }
     }
-    bool result = true;
+    bool result;
     m_timelineData.addTrack(TrackMime(curKey, actualIndex, static_cast<SpecificType>(trackType)));
     result = (m_trackHeadView->addTrackHead(curData) && m_trackBodyView->addTrackBody(curData));
     m_sync.unlock();
     iw.stop();
-    qDebug() << iw.milliSecond() << "ms after add track";
+    //qDebug() << iw.milliSecond() << "ms after add track";
     return result;
 }
 void TimelineWidget::alterTrackData(const QString &key, const TrackMime &curData)
@@ -316,7 +320,7 @@ void TimelineWidget::addClip(const QString &trackKey, const ClipMime &mime, bool
     if (shouldEmitSignal) {
         emit TrackClipChanged(trackKey, mime.id, 1);
     }
-
+    updateMaxDuration();
 }
 void TimelineWidget::removeClip(const ClipMime &clipKey, bool searchWhenTrackKeyEmpty, bool shouldEmitSignal)
 {
@@ -346,7 +350,7 @@ void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal)
 {
     TrackMime cur;
     auto actualTrackSize = (int)m_timelineData.tracks.size();
-    if (index == -1||index>actualTrackSize) {
+    if (index == -1 || index > actualTrackSize) {
         index = actualTrackSize;
     }//set to last;
     if (!m_timelineData.getTrack(cur, [&](const TrackMime &x) -> bool
@@ -361,6 +365,7 @@ void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal)
     if (shouldEmitSignal) {
         emit TrackClipChanged(cur.id, mime.id, 1);
     }
+    updateMaxDuration();
 }
 void TimelineWidget::alterClipData(const QString &key,
                                    const QString &trackKey,
@@ -391,21 +396,74 @@ void TimelineWidget::alterClipData(const QString &key,
         addClip(mime.trackId, mime);//新轨道添加
     }
     else {
-       m_timelineData.setClip(mime.trackId,mime.id,mime);
+        m_timelineData.setClip(mime.trackId, mime.id, mime);
     }
     if (shouldEmitSignal) {
         emit ClipUpdated(mime.trackId, mime.id);
     }
 }
 
-void TimelineWidget::setSelectedClip(const QString &clip)
+void TimelineWidget::setSelectedClip(const QString &clip,bool isCancel)
 {
-    m_selectedClips.clear();
-    m_selectedClips.push_back(clip);
+    if(isCancel)
+    {
+        m_selectedClips.removeAll(clip);
+    }
+    else{
+        m_selectedClips.clear();
+        m_selectedClips.push_back(clip);
+    }
+
 }
-void TimelineWidget::setSelectedClip(const QList<QString> &clips)
+void TimelineWidget::setSelectedClip(const QList<QString> &clips,bool isCancel)
 {
-    m_selectedClips = QList<QString>(clips);
+    if(isCancel)
+    {
+        std::for_each(clips.begin(),clips.end(),[&](const QString& curClip)->void
+        {
+            m_selectedClips.removeAll(curClip);
+        });
+    }
+    else{
+        std::for_each(clips.begin(),clips.end(),[&](const QString& curClip)->void
+        {
+            if(!m_selectedClips.contains(curClip))
+            {
+                m_selectedClips.push_back(curClip);
+            }
+
+        });
+    }
+
+}
+void TimelineWidget::setClipMovement(int xDiff, int yDiff)
+{
+    if(m_selectedClips.count()<=0)
+        return;
+    bool shouldUpdateMaxDuration = false;
+    //pre check;
+
+    m_timelineData.getClips(m_selectedClips);
+
+    std::for_each(m_selectedClips.begin(),m_selectedClips.end(),[&](const QString& curKey)->void
+    {
+        auto curMime = m_timelineData.getClip(curKey,"");
+        if(curMime.isDefaultData())
+            return;
+        long curPos = (long)curMime.startPos+xDiff;
+        if(curPos>maxDuration())
+            shouldUpdateMaxDuration = true;
+        if(curPos<0)
+        {
+            xDiff -= (int)curPos;//let others move with this
+            curMime.startPos = 0;
+        }
+        //TODO:add y diff to move track
+        alterClipData(curMime.id,curMime.trackId,curMime);
+    });
+    if(shouldUpdateMaxDuration)
+        setMaxDuration(maxDuration()*2);
+
 }
 bool TimelineWidget::isSelected(const QString &clipKey)
 {
@@ -439,6 +497,39 @@ void TimelineWidget::forceUpdate(TimelineWidget::Area pos)
         break;
     }
     }
+}
+
+void TimelineWidget::updateMaxDuration()
+{
+    auto curLastClip = m_timelineData.getLastClip();
+    if (curLastClip.isDefaultData())
+        return;
+    //qDebug()<<"current Last"<<curLastClip.startPos+curLastClip.duration;
+    auto curMax = maxDuration();
+    while ((curLastClip.startPos + curLastClip.duration) >= (curMax/1.5)) {
+        curMax *= 2;
+    }
+    //qDebug()<<"set max duration with:"<<curMax;
+    setMaxDuration(curMax);
+}
+
+void TimelineWidget::adaptTimelineLength()
+{
+    auto curLastClip = m_timelineData.getLastClip();
+    if (curLastClip.isDefaultData())
+        return;
+    auto desirePos = (ulong)((curLastClip.startPos + curLastClip.duration) * 1.5);//   1/3
+    desirePos = desirePos > maxDuration() ? maxDuration() : desirePos;
+    auto areaWidth = getArea(RightBottom).width();
+    auto curFrameTick = desirePos / (areaWidth / MIN_TICK_WIDTH);
+    auto setFrame =(long)(curFrameTick < 1 ? 1 : (curFrameTick > maxFrameTick() ? maxFrameTick() : curFrameTick));
+    if(setFrame>=3)
+    {
+        setFrame = setFrame%2?setFrame-1:setFrame-2;
+    }
+    //qDebug()<<"with frame tick:"<<setFrame;
+    setFrameTick(setFrame);
+    update();
 }
 
 #pragma  endregion

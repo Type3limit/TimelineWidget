@@ -155,7 +155,7 @@ public:
         return {m_nWidth,m_nHeight};
     }
     ///获取可视区
-    virtual QRectF getViewPortRect()
+    virtual const QRectF getViewPortRect() const
     {
         return mapToScene(viewport()->geometry()).boundingRect();
     }

@@ -40,7 +40,7 @@ private:
     QRectF m_shadowRect;
     QRectF m_originRect;
     ShadowClipItem* m_shadow = nullptr;
-    QImage m_image;
+    QPixmap m_image;
     void Init();
 };
 

@@ -43,8 +43,7 @@ private:
     Ui::TimelineWidget *ui;
 
 public:
-    ///初始化控件
-    void initWidgets();
+
     ///获取控件具体位置宽高
     QRectF getArea(Area pos) const;
     ///获取可视区范围矩形
@@ -53,6 +52,10 @@ public:
     void forceUpdate(Area pos);
     ///获取时间线源数据
     TimelineMime getTimeMime();
+    ///根据当前切片调整最大长度（仅在不足时变长，不缩短）
+    void updateMaxDuration();
+    ///根据切片长度自适应调整
+    void adaptTimelineLength();
 public:
 #pragma region DataAccess
     ///获取时间单位尺
@@ -84,10 +87,14 @@ public:
     void removeTrack(const QString& key);
 #pragma endregion
 #pragma region Clip option
-
-    void setSelectedClip(const QString& clips);
-    void setSelectedClip(const QList<QString>&clips);
+    ///设置被选中的单个切片，如有多个，会替换为当前设置切片
+    void setSelectedClip(const QString& clips,bool isCancel=false);
+    ///设置多个选中切片，取已有选中项和传入选中项的并集
+    void setSelectedClip(const QList<QString>&clips,bool isCancel=false);
+    ///判断某个切片是否被选中
     bool isSelected(const QString& clipKey);
+    ///切片所有被选中的切片
+    void setClipMovement(int xDiff,int yDiff);
     ///添加切片到指定轨道
     void addClip(const QString& trackKey,const ClipMime& mime,bool shouldEmitSignal = true);
     ///添加切片到指定轨道
@@ -108,18 +115,26 @@ protected:
     void wheelEvent(QWheelEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
 private:
+    ///根据时间线长度调整最大单位刻度
     void updateMaxTick();
+    ///初始化控件
+    void initWidgets();
 private:
     ///左上单位刻度
     TickDrawingView *m_tickView = nullptr;
     ///右上时间刻度
-    RulerDrawingView *m_rulerView = nullptr;    ///轨道头
+    RulerDrawingView *m_rulerView = nullptr;
+    ///轨道头
     TrackHeadDrawingView *m_trackHeadView = nullptr;
     ///轨道体
     TrackBodyDrawingView *m_trackBodyView = nullptr;
 private:
+    friend class ClipItem;
+    friend class TrackBodyItem;
+    friend class TrackHeadItem;
 
 private:
+    ///被选中的所有切片，仅记录key
     QList<QString>m_selectedClips;
     ///主要的时间线数据
     TimelineMime m_timelineData;
@@ -139,6 +154,8 @@ signals:
     void ClipUpdated(const QString& trackKey,const QString& clipKey);
     ///切片成/解组时发出,建议由clip订阅
     void ClipToGroup(bool isGrouped ,const QString& groupKey,const QString& clipKey);
+
+
 };
 
 

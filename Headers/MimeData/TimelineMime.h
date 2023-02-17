@@ -20,7 +20,7 @@ struct TimelineMime
     ///单位尺度的帧数
     volatile ulong m_ulFrameTick = 1;
     ///时间线总长度
-    volatile ulong m_ulMaxDuration = 0;
+    volatile ulong m_ulMaxDuration = 100;
     ///当前位置
     volatile ulong m_ulCurPos = 0;
     ///最大的尺度帧数
@@ -139,22 +139,20 @@ public:
         (*itr).removeClip(clipKey);
     }
     ///变更一个指定切片
-    void setClip(const QString& trackKey,const QString& clipKey,const ClipMime& mime,bool searchWhenTrackKeyFailed =true)
+    void setClip(const QString &trackKey, const QString &clipKey, const ClipMime &mime, bool searchWhenTrackKeyFailed = true)
     {
         std::vector<TrackMime>::iterator itr;
         TrackMime curTrack;
-        if(!getTrackWithItr(trackKey,itr))
-        {
-            if(!getTrack(curTrack,[&]( TrackMime curTrack)->bool
+        if (!getTrackWithItr(trackKey, itr)) {
+            if (!getTrack(curTrack, [&](TrackMime curTrack) -> bool
             {
                 return !(curTrack.getClip(clipKey).isDefaultData());
-            }))
-            {
+            })) {
                 return;
             }
-            getTrackWithItr(curTrack.id,itr);
+            getTrackWithItr(curTrack.id, itr);
         }
-        (*itr).setClip(clipKey,mime);
+        (*itr).setClip(clipKey, mime);
     }
     ///添加一个组信息
     void addGroup(const QString &groupKey)
@@ -170,6 +168,47 @@ public:
     {
         return clipGroupsRecord.end() == std::remove(clipGroupsRecord.begin(), clipGroupsRecord.end(), groupKey);
     }
+    ///获取一个指定的切片信息
+    ClipMime getClip(const QString& clipKey,const QString& trackKey)
+    {
+        QList<TrackMime> trackInSearch;
+        ClipMime curClip;
+        if(!trackKey.isEmpty())
+        {
+            TrackMime curData;
+            if(!getTrack(curData,trackKey))
+            {
+                trackInSearch = getTracks();
+            }
+            else{
+                trackInSearch.push_back(curData);
+            }
+        }
+        else{
+            trackInSearch.append(getTracks());//TrackKey is empty , find it in all tracks
+        }
+        for(auto curTrack:trackInSearch)
+        {
+            curClip = curTrack.getClip(clipKey);
+            if(!curClip.isDefaultData())
+                break;
+        }
+        return curClip;
+    }
+    ///获取一组切片
+    QList<ClipMime> getClips(const QList<QString>& clipsKey)
+    {
+        QList<ClipMime> clips;
+        for(const auto& itr:clipsKey)
+        {
+            auto curClip = getClip(itr,"");
+            if(!curClip.isDefaultData())
+            {
+                clips.push_back(curClip);
+            }
+        }
+        return clips;
+    }
     ///通过组别拿到切片
     QList<ClipMime> getClipByGroup(const QString &groupKey)
     {
@@ -183,7 +222,7 @@ public:
                                             });
             clips.append(curTracks);
         }
-        return clips;
+        return clips;s
     }
     ///获取切片里位置最前的一个，可以指定轨道，否则获取所有轨道
     ClipMime getfirstClip(const QString &specificTrackKey = "")
@@ -208,7 +247,7 @@ public:
             auto curPos = std::min_element(curTrack.clips.begin(), curTrack.clips.end(),
                                            [](const ClipMime &left, const ClipMime &right) -> bool
                                            {
-                                               return left.startPos <= right.startPos;
+                                               return left.startPos >= right.startPos;
                                            });
             if (curPos->startPos <= curMinPos) {
                 curMinPos = curPos->startPos;
@@ -221,7 +260,8 @@ public:
     ClipMime getLastClip(const QString &specificTrackKey = "")
     {
         ClipMime curClip;
-        ulong curMinPos = 0;
+        ulong curMaxPos = 0;
+
         QList<TrackMime> tracksInsearch;
         if (specificTrackKey.isEmpty()) {
             tracksInsearch = getTracks();
@@ -235,15 +275,21 @@ public:
                 tracksInsearch = getTracks();
             }
         }
+
         std::for_each(tracksInsearch.begin(), tracksInsearch.end(), [&](const TrackMime &curTrack) -> void
         {
             auto curPos = std::max_element(curTrack.clips.begin(), curTrack.clips.end(),
-                                           [](const ClipMime &left, const ClipMime &right) -> bool
+                                           [&](const ClipMime& left,  const ClipMime& right) -> bool
                                            {
-                                               return left.startPos >= right.startPos;
+                                               return left.startPos+left.duration <= right.startPos+right.duration;
                                            });
-            if (curPos->startPos >= curMinPos) {
-                curMinPos = curPos->startPos;
+
+            if(curPos==curTrack.clips.end())
+                return;
+            //qDebug()<<"in track:["<<curTrack.id<<"]get last: ["<<(*curPos).startPos+(*curPos).duration<<"] with clip count:"<<curTrack
+            //.clips.size();
+            if ((*curPos).startPos+(*curPos).duration >= curMaxPos) {
+                curMaxPos =(*curPos).startPos+(*curPos).duration;
                 curClip = *curPos;
             }
         });

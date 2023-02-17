@@ -7,7 +7,7 @@
 #include "timelinewidget.h"
 #include "IntervalWatcher.h"
 #include <QGraphicsSceneMouseEvent>
-
+#include <QApplication>
 #define timeline() (GET_POINTER<TimelineWidget>())
 ClipItem::ClipItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)
@@ -85,13 +85,15 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         painter->setPen(QPen(Qt::white));
         for(int curX = startX;curX<=xIndex+width;curX+=20)
         {
+            if((xIndex+width)-curX < 20)
+                return;
             if(shouldDrawText)
             {
                painter->drawText(curX,(int)yIndex,20,TRACK_HEIGHT,Qt::AlignHCenter | Qt::AlignVCenter,"测试");
             }
             if(shouldDrawPic)
             {
-                painter->drawImage(QRect(curX,yIndex,20,20),m_image);
+                painter->drawPixmap(QRect(curX,yIndex,20,20),m_image);
             }
         }
         //iw.stop();
@@ -120,7 +122,7 @@ bool ClipItem::insertToTrack(const QString &trackKey)
     if(!m_trackMimeKey.isEmpty())
         return false;
     m_trackMimeKey = trackKey;
-    qDebug()<<"insert clip :"<<m_mimeKey<<"to track:"<<m_trackMimeKey;
+    //qDebug()<<"insert clip :"<<m_mimeKey<<"to track:"<<m_trackMimeKey;
     return true;
 }
 bool ClipItem::removeFromTrack()
@@ -168,14 +170,24 @@ QVariant ClipItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
 }
 void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
-    timeline()->setSelectedClip(m_mimeKey);
-    if(!m_isDragMoved)
+    if(event->button()==Qt::MouseButton::LeftButton)
     {
-        m_originRect = m_shadowRect = boundingRect();
-        m_isDragMoved = true;
-        event->accept();
-        m_prePoint = event->scenePos();
-        scene()->addItem(m_shadow);
+        if(QApplication::keyboardModifiers().testFlag(Qt::ControlModifier))
+        {
+           timeline()->setSelectedClip(QList<QString>{m_mimeKey},timeline()->isSelected(m_mimeKey));
+        }
+        else
+        {
+            timeline()->setSelectedClip(m_mimeKey,timeline()->isSelected(m_mimeKey));
+            if(!m_isDragMoved)
+            {
+                m_originRect = m_shadowRect = boundingRect();
+                m_isDragMoved = true;
+                event->accept();
+                m_prePoint = event->scenePos();
+                scene()->addItem(m_shadow);
+            }
+        }
     }
     else{
         QGraphicsItem::mousePressEvent(event);
