@@ -101,8 +101,7 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 }
 QRectF ClipItem::boundingRect() const
 {
-    auto countOfTrack = timeline()->getTrackCount();
-    auto trackBodyHeight = countOfTrack * TRACK_HEIGHT;
+    auto trackBodyHeight = timeline()->getTrackCount() * TRACK_HEIGHT;
     auto trackData = getTrackData();
     auto curData =trackData.getClip(m_mimeKey);
     auto xIndex = ((double)(curData.startPos)/timeline()->frameTick())*MIN_TICK_WIDTH;
@@ -113,7 +112,6 @@ QRectF ClipItem::boundingRect() const
     {
         yIndex += (curArea.height() - trackBodyHeight) / 2.0;
     }
-
     return QRectF(xIndex,yIndex,width,TRACK_HEIGHT);
 
 }

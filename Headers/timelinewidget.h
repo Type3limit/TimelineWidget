@@ -43,7 +43,6 @@ private:
     Ui::TimelineWidget *ui;
 
 public:
-
     ///获取控件具体位置宽高
     QRectF getArea(Area pos) const;
     ///获取可视区范围矩形
@@ -79,7 +78,7 @@ public:
     int getTrackCount() const;
     ///获取指定Track
     bool getTrackData(TrackMime &data, const QString &key);
-    ///获取指定位置的Track
+    ///获取指定位置的Track(逻辑index)
     TrackMime getTrackData(int index);
     ///添加轨道(-1 to tail)
     bool addTrack(const QString& key, int trackType, int index);

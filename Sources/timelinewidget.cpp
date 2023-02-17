@@ -163,11 +163,10 @@ void TimelineWidget::updateMaxTick()
 {
     auto curMax =
         qRound((double)(maxDuration() * MIN_TICK_WIDTH) / getArea(Area::RightTop).width());
-    curMax = curMax <= WHEEL_SCALE_DELTA ? 1 : curMax- WHEEL_SCALE_DELTA;
+    curMax = curMax <= WHEEL_SCALE_DELTA ? 1 : curMax - WHEEL_SCALE_DELTA;
 
-    if(curMax>=3)
-    {
-        curMax = curMax%2?curMax-1:curMax-2;
+    if (curMax >= 3) {
+        curMax = curMax % 2 ? curMax - 1 : curMax - 2;
     }
     //qDebug()<<"with max frame:"<<curMax;
     m_timelineData.m_maxFrameTick = curMax;
@@ -193,7 +192,6 @@ void TimelineWidget::setMaxDuration(ulong curData)
 }
 ulong TimelineWidget::curPos() const
 {
-
     return m_timelineData.m_ulCurPos;
 
 }
@@ -213,7 +211,7 @@ void TimelineWidget::setFrameTick(ulong curData, bool shouldEmitSignal)
 {
     if (m_timelineData.m_ulFrameTick != curData) {
         m_timelineData.m_ulFrameTick = curData;
-        auto frameWidth = (maxDuration() / frameTick()) * MIN_TICK_WIDTH;
+        auto frameWidth = (qreal)((maxDuration() / frameTick()) * MIN_TICK_WIDTH);
         auto widthInUse = frameWidth;
 
         if (frameWidth < getArea(Area::RightTop).width()) {
@@ -316,11 +314,12 @@ void TimelineWidget::addClip(const QString &trackKey, const ClipMime &mime, bool
         qDebug() << "add clip failed , track:[" << trackKey << "]is not exist";
         return;
     }
+    //TODO:check if any clips in current clip area (break it and move others)
     m_timelineData.addClip(cur.id, mime);
+    updateMaxDuration();
     if (shouldEmitSignal) {
         emit TrackClipChanged(trackKey, mime.id, 1);
     }
-    updateMaxDuration();
 }
 void TimelineWidget::removeClip(const ClipMime &clipKey, bool searchWhenTrackKeyEmpty, bool shouldEmitSignal)
 {
@@ -403,68 +402,64 @@ void TimelineWidget::alterClipData(const QString &key,
     }
 }
 
-void TimelineWidget::setSelectedClip(const QString &clip,bool isCancel)
+void TimelineWidget::setSelectedClip(const QString &clip, bool isCancel)
 {
-    if(isCancel)
-    {
+    if (isCancel) {
         m_selectedClips.removeAll(clip);
     }
-    else{
+    else {
         m_selectedClips.clear();
         m_selectedClips.push_back(clip);
     }
 
 }
-void TimelineWidget::setSelectedClip(const QList<QString> &clips,bool isCancel)
+void TimelineWidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
 {
-    if(isCancel)
-    {
-        std::for_each(clips.begin(),clips.end(),[&](const QString& curClip)->void
+    if (isCancel) {
+        std::for_each(clips.begin(), clips.end(), [&](const QString &curClip) -> void
         {
             m_selectedClips.removeAll(curClip);
         });
     }
-    else{
-        std::for_each(clips.begin(),clips.end(),[&](const QString& curClip)->void
+    else {
+        std::for_each(clips.begin(), clips.end(), [&](const QString &curClip) -> void
         {
-            if(!m_selectedClips.contains(curClip))
-            {
+            if (!m_selectedClips.contains(curClip)) {
                 m_selectedClips.push_back(curClip);
             }
-
         });
     }
 
 }
 void TimelineWidget::setClipMovement(int xDiff, int yDiff)
 {
-    if(m_selectedClips.count()<=0)
+    if (m_selectedClips.count() <= 0)
         return;
     bool shouldUpdateMaxDuration = false;
     //pre check;
 
     m_timelineData.getClips(m_selectedClips);
 
-    std::for_each(m_selectedClips.begin(),m_selectedClips.end(),[&](const QString& curKey)->void
+    std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &curKey) -> void
     {
-        auto curMime = m_timelineData.getClip(curKey,"");
-        if(curMime.isDefaultData())
+        auto curMime = m_timelineData.getClip(curKey, "");
+        if (curMime.isDefaultData())
             return;
-        long curPos = (long)curMime.startPos+xDiff;
-        if(curPos>maxDuration())
+        long curPos = (long)curMime.startPos + xDiff;
+        if (curPos > maxDuration())
             shouldUpdateMaxDuration = true;
-        if(curPos<0)
-        {
+        if (curPos < 0) {
             xDiff -= (int)curPos;//let others move with this
             curMime.startPos = 0;
         }
         //TODO:add y diff to move track
-        alterClipData(curMime.id,curMime.trackId,curMime);
+        alterClipData(curMime.id, curMime.trackId, curMime);
     });
-    if(shouldUpdateMaxDuration)
-        setMaxDuration(maxDuration()*2);
+    if (shouldUpdateMaxDuration)
+        setMaxDuration(maxDuration() * 2);
 
 }
+
 bool TimelineWidget::isSelected(const QString &clipKey)
 {
     return m_selectedClips.contains(clipKey);
@@ -506,7 +501,7 @@ void TimelineWidget::updateMaxDuration()
         return;
     //qDebug()<<"current Last"<<curLastClip.startPos+curLastClip.duration;
     auto curMax = maxDuration();
-    while ((curLastClip.startPos + curLastClip.duration) >= (curMax/1.5)) {
+    while ((curLastClip.startPos + curLastClip.duration) >= (curMax / 1.5)) {
         curMax *= 2;
     }
     //qDebug()<<"set max duration with:"<<curMax;
@@ -518,14 +513,13 @@ void TimelineWidget::adaptTimelineLength()
     auto curLastClip = m_timelineData.getLastClip();
     if (curLastClip.isDefaultData())
         return;
-    auto desirePos = (ulong)((curLastClip.startPos + curLastClip.duration) * 1.5);//   1/3
+    auto desirePos = (ulong)((curLastClip.startPos + curLastClip.duration) * 1.5);//   1/3？
     desirePos = desirePos > maxDuration() ? maxDuration() : desirePos;
     auto areaWidth = getArea(RightBottom).width();
     auto curFrameTick = desirePos / (areaWidth / MIN_TICK_WIDTH);
-    auto setFrame =(long)(curFrameTick < 1 ? 1 : (curFrameTick > maxFrameTick() ? maxFrameTick() : curFrameTick));
-    if(setFrame>=3)
-    {
-        setFrame = setFrame%2?setFrame-1:setFrame-2;
+    auto setFrame = (long)(curFrameTick < 1 ? 1 : (curFrameTick > maxFrameTick() ? maxFrameTick() : curFrameTick));
+    if (setFrame >= 3) {
+        setFrame = setFrame % 2 ? setFrame - 1 : setFrame - 2;//not max
     }
     //qDebug()<<"with frame tick:"<<setFrame;
     setFrameTick(setFrame);

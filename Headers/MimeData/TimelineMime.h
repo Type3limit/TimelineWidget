@@ -58,7 +58,7 @@ public:
     ///获取所有轨道
     QList<TrackMime> getTracks()
     {
-        return QList<TrackMime>::fromVector(QVector<TrackMime>::fromStdVector((tracks)));
+        return QList<TrackMime>::fromVector(QVector<TrackMime>::fromStdVector(tracks));
     }
     ///获取指定条件的所有切片
     QList<TrackMime> getTracks(const std::function<bool(TrackMime)> &matchFunction)
@@ -222,7 +222,7 @@ public:
                                             });
             clips.append(curTracks);
         }
-        return clips;s
+        return clips;
     }
     ///获取切片里位置最前的一个，可以指定轨道，否则获取所有轨道
     ClipMime getfirstClip(const QString &specificTrackKey = "")
@@ -286,8 +286,6 @@ public:
 
             if(curPos==curTrack.clips.end())
                 return;
-            //qDebug()<<"in track:["<<curTrack.id<<"]get last: ["<<(*curPos).startPos+(*curPos).duration<<"] with clip count:"<<curTrack
-            //.clips.size();
             if ((*curPos).startPos+(*curPos).duration >= curMaxPos) {
                 curMaxPos =(*curPos).startPos+(*curPos).duration;
                 curClip = *curPos;
@@ -295,7 +293,6 @@ public:
         });
         return curClip;
     }
-
 
 #pragma endregion
 };

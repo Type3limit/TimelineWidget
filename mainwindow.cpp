@@ -42,7 +42,7 @@ void MainWindow::showEvent(QShowEvent *event)
         ui->widget->addTrack(ids[i],(SpecificType)i%3+1,-1);
     }
 
-    for(int i =0 ;i<30;i++)
+    for(int i =0 ;i<10;i++)
     {
         for(int j = 0;j<3;j++)
         {
