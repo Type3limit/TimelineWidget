@@ -18,24 +18,44 @@ struct TimelineMime
     /// clip groups key record
     std::vector<QString> clipGroupsRecord;//due to clip group may cross at least one track,so record it to timeline
     ///单位尺度的帧数
-    volatile ulong m_ulFrameTick = 1;
+    volatile uint64_t m_ulFrameTick = 1;
     ///时间线总长度
-    volatile ulong m_ulMaxDuration = 100;
+    volatile uint64_t m_ulMaxDuration = 100;
     ///当前位置
-    volatile ulong m_ulCurPos = 0;
+    volatile uint64_t m_ulCurPos = 0;
     ///最大的尺度帧数
-    volatile ulong m_maxFrameTick = 9;
+    volatile uint64_t m_maxFrameTick = 9;
 
     TimelineMime() = default;
     TimelineMime(const TimelineMime &other)
     {
         id = other.id;
         tracks = (other.tracks);
+        clipGroupsRecord = std::vector<QString>(other.clipGroupsRecord);
+        m_ulFrameTick = other.m_ulFrameTick;
+        m_ulMaxDuration = other.m_ulMaxDuration;
+        m_ulCurPos = other.m_ulCurPos;
+        m_maxFrameTick = other.m_maxFrameTick;
     }
     explicit TimelineMime(const QString &ids)
     {
         id = (ids);
     }
+
+#pragma region Operator
+    TimelineMime &operator=(const TimelineMime &other)
+    {
+        id = other.id;
+        tracks = std::vector<TrackMime>(other.tracks);
+        clipGroupsRecord = std::vector<QString>(other.clipGroupsRecord);
+        m_ulFrameTick = other.m_ulFrameTick;
+        m_ulMaxDuration = other.m_ulMaxDuration;
+        m_ulCurPos = other.m_ulCurPos;
+        m_maxFrameTick = other.m_maxFrameTick;
+        return *this;
+    }
+#pragma endregion
+
 #pragma  region track func
 private:
     inline bool getTrackWithKey(const QString &key, TrackMime &data)
@@ -58,7 +78,7 @@ public:
     ///获取所有轨道
     QList<TrackMime> getTracks()
     {
-        return QList<TrackMime>::fromVector(QVector<TrackMime>::fromStdVector(tracks));
+        return {tracks.begin(), tracks.end()};
     }
     ///获取指定条件的所有切片
     QList<TrackMime> getTracks(const std::function<bool(TrackMime)> &matchFunction)
@@ -139,7 +159,8 @@ public:
         (*itr).removeClip(clipKey);
     }
     ///变更一个指定切片
-    void setClip(const QString &trackKey, const QString &clipKey, const ClipMime &mime, bool searchWhenTrackKeyFailed = true)
+    void
+    setClip(const QString &trackKey, const QString &clipKey, const ClipMime &mime, bool searchWhenTrackKeyFailed = true)
     {
         std::vector<TrackMime>::iterator itr;
         TrackMime curTrack;
@@ -169,41 +190,36 @@ public:
         return clipGroupsRecord.end() == std::remove(clipGroupsRecord.begin(), clipGroupsRecord.end(), groupKey);
     }
     ///获取一个指定的切片信息
-    ClipMime getClip(const QString& clipKey,const QString& trackKey)
+    ClipMime getClip(const QString &clipKey, const QString &trackKey)
     {
         QList<TrackMime> trackInSearch;
         ClipMime curClip;
-        if(!trackKey.isEmpty())
-        {
+        if (!trackKey.isEmpty()) {
             TrackMime curData;
-            if(!getTrack(curData,trackKey))
-            {
+            if (!getTrack(curData, trackKey)) {
                 trackInSearch = getTracks();
             }
-            else{
+            else {
                 trackInSearch.push_back(curData);
             }
         }
-        else{
+        else {
             trackInSearch.append(getTracks());//TrackKey is empty , find it in all tracks
         }
-        for(auto curTrack:trackInSearch)
-        {
+        for (auto curTrack: trackInSearch) {
             curClip = curTrack.getClip(clipKey);
-            if(!curClip.isDefaultData())
+            if (!curClip.isDefaultData())
                 break;
         }
         return curClip;
     }
     ///获取一组切片
-    QList<ClipMime> getClips(const QList<QString>& clipsKey)
+    QList<ClipMime> getClips(const QList<QString> &clipsKey)
     {
         QList<ClipMime> clips;
-        for(const auto& itr:clipsKey)
-        {
-            auto curClip = getClip(itr,"");
-            if(!curClip.isDefaultData())
-            {
+        for (const auto &itr: clipsKey) {
+            auto curClip = getClip(itr, "");
+            if (!curClip.isDefaultData()) {
                 clips.push_back(curClip);
             }
         }
@@ -215,7 +231,7 @@ public:
         QList<ClipMime> clips;
         if (std::find(clipGroupsRecord.begin(), clipGroupsRecord.end(), groupKey) == clipGroupsRecord.end())
             return clips;//key is not record;
-        for (auto track: tracks) {
+        for (auto &track: tracks) {
             auto curTracks = track.getClips([&](const ClipMime &curClip) -> bool
                                             {
                                                 return curClip.groupId == groupKey;
@@ -224,6 +240,29 @@ public:
         }
         return clips;
     }
+    ///获取在某个范围内的所有切片,可以指定轨道，否则返回所有轨道
+    QList<ClipMime> getClipsAtPosRange(ulong startPos, ulong endPos, const QString &specificTrackKey = "")
+    {
+        QList<ClipMime> result;
+        QList<TrackMime> tracksInsearch;
+        if (specificTrackKey.isEmpty()) {
+            tracksInsearch = {tracks.begin(), tracks.end()};
+        }
+        else {
+            TrackMime curTrackData;
+            if (getTrack(curTrackData, specificTrackKey)) {
+                tracksInsearch.push_back(curTrackData);
+            }
+        }
+
+        for (auto &curTrack: tracksInsearch) {
+            result.append(curTrack.getClips([&](const ClipMime &curClip) -> bool
+                                            {
+                                                return curClip.startPos >= startPos && curClip.startPos < endPos;
+                                            }));
+        }
+    }
+
     ///获取切片里位置最前的一个，可以指定轨道，否则获取所有轨道
     ClipMime getfirstClip(const QString &specificTrackKey = "")
     {
@@ -279,15 +318,15 @@ public:
         std::for_each(tracksInsearch.begin(), tracksInsearch.end(), [&](const TrackMime &curTrack) -> void
         {
             auto curPos = std::max_element(curTrack.clips.begin(), curTrack.clips.end(),
-                                           [&](const ClipMime& left,  const ClipMime& right) -> bool
+                                           [&](const ClipMime &left, const ClipMime &right) -> bool
                                            {
-                                               return left.startPos+left.duration <= right.startPos+right.duration;
+                                               return left.startPos + left.duration <= right.startPos + right.duration;
                                            });
 
-            if(curPos==curTrack.clips.end())
+            if (curPos == curTrack.clips.end())
                 return;
-            if ((*curPos).startPos+(*curPos).duration >= curMaxPos) {
-                curMaxPos =(*curPos).startPos+(*curPos).duration;
+            if ((*curPos).startPos + (*curPos).duration >= curMaxPos) {
+                curMaxPos = (*curPos).startPos + (*curPos).duration;
                 curClip = *curPos;
             }
         });
@@ -297,5 +336,5 @@ public:
 #pragma endregion
 };
 
-REFLECTION(TimelineMime, id, tracks, m_ulFrameTick, m_ulMaxDuration, m_ulCurPos, m_maxFrameTick);
+REFLECTION(TimelineMime, id, tracks, clipGroupsRecord, m_ulFrameTick, m_ulMaxDuration, m_ulCurPos, m_maxFrameTick);
 #endif //TIMELINEMIME_H

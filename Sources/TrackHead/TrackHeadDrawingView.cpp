@@ -63,3 +63,14 @@ void TrackHeadDrawingView::OnTrackHeadUpdate(const QString &key)
         return ;
     m_headItems[key]->forceUpdate();
 }
+void TrackHeadDrawingView::emptyTracks()
+{
+    std::for_each(m_headItems.begin(), m_headItems.end(),[&](auto item)->void
+    {
+       if(item!=nullptr)
+       {
+           SAFE_DELETE(item);
+       }
+    });
+    m_headItems.clear();
+}

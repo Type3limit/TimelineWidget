@@ -48,6 +48,9 @@ const int TIMELINE_ANCHOR_BODY_WIDTH =4;
 ///时间线滚动变更值
 const int WHEEL_SCALE_DELTA = 2;
 
+///切片触发扩张变更值
+const int CLIP_SPAN_UNIT = 2;
+
 ///时间线绘制颜色
 const QColor DRAW_COLOR = QColor(160, 160, 160);
 ///背景深色
@@ -58,7 +61,6 @@ const QColor BACK_LIGHT_COLOR= QColor(45,45,53);
 const QColor ANCHOR_COLOR = QColor(230, 75, 61);
 ///黑笔
 const QColor BLACK_COLOR = QColor(0,0,0);
-
 ///效果切片色
 const QColor EFFECT_CLIP_COLOR = QColor(157,171,194);
 ///字幕切片色
@@ -66,6 +68,16 @@ const QColor SUBTITLE_CLIP_COLOR = QColor(2,143,94);
 ///贴纸切片色
 const QColor STICKER_CLIP_COLOR = QColor(86,105,243);
 
+///类别
+enum SpecificType
+{
+    None = 0,
+    Effect,
+    Sticker,
+    Subtitle
+};
+
+#pragma region function
 ///用于Ruler上的数值转换
 static QString FrameToTimeCode(ulong curFrame, int FrameRate)
 {
@@ -96,15 +108,6 @@ static QString FrameToScaleCode(ulong curFrameTick, int FrameRate)
     }
     return "";
 }
-
-///类别
-enum SpecificType
-{
-    None = 0,
-    Effect,
-    Sticker,
-    Subtitle
-};
-
+#pragma  endregion
 
 #endif //TIMELINEDEFINATION_H

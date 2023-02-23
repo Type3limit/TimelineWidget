@@ -21,6 +21,7 @@ public:
     void addClipItem(const QString& itemKey);
     void removeClipItem(const QString& itemKey);
     void updateClipItem(const QString& itemKey);
+    ClipItem* getClipItem(const QString& itemKey);
 protected:
     QRectF boundingRect()const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)override;
@@ -28,6 +29,8 @@ private:
     QString m_mimeKey;
     QRectF m_updateRect;
     QMap<QString,ClipItem*>m_clips;
+    QList<ClipItem*> m_removeLists;
+
 };
 
 

@@ -26,6 +26,11 @@ TrackBodyItem::~TrackBodyItem()
         auto curItem = m_clips[key];
         SAFE_DELETE(curItem);
     });
+    std::for_each(m_removeLists.begin(), m_removeLists.end(),[&](ClipItem* curItem)->void
+    {
+        SAFE_DELETE(curItem);
+    });
+
     m_clips.clear();
 }
 
@@ -80,6 +85,7 @@ void TrackBodyItem::addClipItem(const QString &itemKey)
     curItem->insertToTrack(m_mimeKey);
     m_clips.insert(itemKey, curItem);
     this->scene()->addItem(curItem);
+    TimelineInstance()->updateSelectedSourceCache(itemKey,curItem);
 }
 void TrackBodyItem::removeClipItem(const QString &itemKey)
 {
@@ -89,11 +95,28 @@ void TrackBodyItem::removeClipItem(const QString &itemKey)
     curItem->removeFromTrack();
     m_clips.remove(itemKey);
     this->scene()->removeItem(curItem);
-    delete curItem;
+    if(m_removeLists.count()>=2)
+        //不立即删除，信号发送与接受执行不是同步完成的
+        // 后续部分可能有用到被删除的ClipItem指针
+        // 这里最多保留一个ClipItem指针。
+    {
+        while(m_removeLists.count()<2)
+        {
+            SAFE_DELETE(m_removeLists.front());
+            m_removeLists.pop_front();
+        }
+    }
+    m_removeLists.push_back(curItem);
 }
 void TrackBodyItem::updateClipItem(const QString &itemKey)
 {
     if (!m_clips.contains(itemKey))
         return;
-    m_clips[itemKey]->update();
+    m_clips[itemKey]->forceUpdate();
+}
+ClipItem* TrackBodyItem::getClipItem(const QString &itemKey)
+{
+    if (!m_clips.contains(itemKey))
+        return nullptr;
+    return  m_clips[itemKey];
 }

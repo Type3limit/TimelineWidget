@@ -11,7 +11,7 @@
 #include "TrackHead/TrackHeadDrawingView.h"
 #include "TrackBody/TrackBodyDrawingView.h"
 #include "MimeData/TimelineMime.h"
-
+#include "MimeData/ClipRange.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -23,6 +23,7 @@ QT_END_NAMESPACE
 class TimelineWidget: public QWidget
 {
 Q_OBJECT
+
     Q_PROPERTY(ulong FrameTick READ frameTick WRITE setFrameTick)
     Q_PROPERTY(ulong Duration READ maxDuration WRITE setMaxDuration)
     Q_PROPERTY(ulong CurPos READ curPos WRITE setCurPos NOTIFY PositionChanged)
@@ -90,6 +91,12 @@ public:
     void setSelectedClip(const QString& clips,bool isCancel=false);
     ///设置多个选中切片，取已有选中项和传入选中项的并集
     void setSelectedClip(const QList<QString>&clips,bool isCancel=false);
+    ///设置多个选中切片，直接使用传入项
+    void setSelectedClip(const QList<ClipItem*>&clips,bool isCancel=false);
+    ///获取所有被选中的切片
+    QList<ClipItem*> getAllSelectedClip();
+    ///更新选中缓存
+    void updateSelectedSourceCache(const QString& clipId,ClipItem* clip);
     ///判断某个切片是否被选中
     bool isSelected(const QString& clipKey);
     ///切片所有被选中的切片
@@ -107,9 +114,19 @@ public:
     ///切片解组
     void rescindClipGroup(const QString& groupKey);
 
+private:
+    void clipMoved(int x, int y ,bool isOver);
+
 #pragma  endregion
 #pragma endregion
 
+#pragma region resumeData
+public:
+    ///由json字符串恢复时间线数据
+    bool buildFromJson(const QString& data);
+    ///由json文件恢复时间线数据
+    bool buildFromJsonFile(const QString& filePath);
+#pragma endregion
 protected:
     void wheelEvent(QWheelEvent *event) override;
     void resizeEvent(QResizeEvent *event) override;
@@ -118,6 +135,10 @@ private:
     void updateMaxTick();
     ///初始化控件
     void initWidgets();
+    ///单帧宽度
+    double percentPerUnit();
+    ///通过纵向高度获取具体轨道
+    bool getTrackByVerticalPos(double yPos,TrackMime& trackData);
 private:
     ///左上单位刻度
     TickDrawingView *m_tickView = nullptr;
@@ -135,8 +156,12 @@ private:
 private:
     ///被选中的所有切片，仅记录key
     QList<QString>m_selectedClips;
+    ///被选中切片的缓存
+    QMap<QString,ClipItem*>m_selectedClipsCache;
     ///主要的时间线数据
     TimelineMime m_timelineData;
+    ///切片范围数据
+    ClipRange m_clipRange;
     ///同步锁
     QMutex m_sync;
     QWaitCondition m_cond;
@@ -153,7 +178,6 @@ signals:
     void ClipUpdated(const QString& trackKey,const QString& clipKey);
     ///切片成/解组时发出,建议由clip订阅
     void ClipToGroup(bool isGrouped ,const QString& groupKey,const QString& clipKey);
-
 
 };
 

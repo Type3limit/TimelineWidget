@@ -67,7 +67,7 @@ add_executable(TimelineWidget main.cpp
         Headers/Clip/ClipItem.h
         Headers/MimeData/TimelineMime.h
         Sources/Clip/ShadowClipItem.cpp
-        Headers/Clip/ShadowClipItem.h Sources/TrackBody/TrackSelectionItem.cpp Headers/TrackBody/TrackSelectionItem.h)
+        Headers/Clip/ShadowClipItem.h Sources/TrackBody/TrackSelectionItem.cpp Headers/TrackBody/TrackSelectionItem.h Sources/MimeData/ClipRange.cpp Headers/MimeData/ClipRange.h)
 
 target_link_libraries(TimelineWidget
         Qt5::Core

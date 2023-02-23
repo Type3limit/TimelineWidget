@@ -20,6 +20,7 @@ public:
     bool removeFromTrack();
     ClipMime getMimeData(bool searchWhenTrackKeyEmpty = true) const;
     TrackMime getTrackData(bool searchWhenTrackKeyEmpty = true)const;
+    void forceUpdate();
 protected:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
@@ -29,10 +30,20 @@ protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
+private:
+    void Init();
+    void clipDrag(int x,int y);
+    void stopClipDrag();
 private:
     volatile bool m_isGrouped = false;
     volatile bool m_isDragMoved= false;
     volatile bool m_isOnHover= false;
+    volatile bool m_isMouseDrag = false;
+
+    volatile bool m_isLeftExpand =false;
+    volatile bool m_isRightExpand = false;
+
     QPointF m_prePoint ;
     QString m_groupId;
     QString m_mimeKey;
@@ -41,7 +52,9 @@ private:
     QRectF m_originRect;
     ShadowClipItem* m_shadow = nullptr;
     QPixmap m_image;
-    void Init();
+
+    friend class TimelineWidget;
+    friend class TrackBodyItem;
 };
 
 

@@ -25,7 +25,8 @@ public:
     TrackHeadItem* getTrackHead(const QString& key);
     ///更改一个项
     TrackHeadItem* updateTrackHead(const QString& key, TrackHeadItem* curData);
-    ///使一个项重绘
+    ///清楚所有项
+    void emptyTracks();
 public slots:
     void OnTrackHeadUpdate(const QString& key);
 private:

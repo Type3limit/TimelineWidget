@@ -69,5 +69,6 @@ RulerItem::RulerItem(QGraphicsObject *parent): QGraphicsItem(parent)
 void RulerItem::setUpdateRect(const QRectF &dest)
 {
     m_updateRect = dest;
+    prepareGeometryChange();
     //qDebug()<<m_updateRect;
 }

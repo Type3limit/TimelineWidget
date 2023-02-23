@@ -18,20 +18,20 @@ int main(int argc, char *argv[])
     window.show();
 #ifdef QT_DEBUG
     ///序列化测试
-    IntervalWatcher sp;
-    sp.start();
-    TrackMime data {"json序列化中文测试",1,SpecificType::Sticker,true,false};
-    sstream ss;
-    TO_JSON(ss,data);
-    sp.stop();
-    qDebug()<<ss.str().c_str();
-    qDebug()<<QString::number(sp.milliSecond())+"ms after track serialize ";
-    sp.start();
-    TrackMime data2;
-    FROM_JSON(data2,ss.str().c_str());
-    qDebug()<<data2.toString();
-    sp.stop();
-    qDebug()<<QString::number(sp.milliSecond())+"ms after track deserialize";
+//    IntervalWatcher sp;
+//    sp.start();
+//    TrackMime data {"json序列化中文测试",1,SpecificType::Sticker,true,false};
+//    sstream ss;
+//    TO_JSON(ss,data);
+//    sp.stop();
+//    qDebug()<<ss.str().c_str();
+//    qDebug()<<QString::number(sp.milliSecond())+"ms after track serialize ";
+//    sp.start();
+//    TrackMime data2;
+//    FROM_JSON(data2,ss.str().c_str());
+//    qDebug()<<data2.toString();
+//    sp.stop();
+//    qDebug()<<QString::number(sp.milliSecond())+"ms after track deserialize";
 #endif
     return QApplication::exec();
 }

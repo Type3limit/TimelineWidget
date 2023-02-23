@@ -24,9 +24,10 @@ TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     connect(horizontalScrollBar(), &QScrollBar::sliderMoved, this, &TrackBodyDrawingView::ScrolledTo);
     connect(TimelineInstance(), &TimelineWidget::PositionChanged,
             m_anchorBody, &AnchorBodyItem::OnTimelinePosChanged, Qt::ConnectionType::QueuedConnection);
-    connect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this, &TrackBodyDrawingView::ClipChanged);
+    connect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this,
+            &TrackBodyDrawingView::ClipChanged,Qt::ConnectionType::QueuedConnection);
     connect(TimelineInstance(), &TimelineWidget::ClipUpdated, this,
-            &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::QueuedConnection);
+            &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::AutoConnection);
 }
 TrackBodyDrawingView::~TrackBodyDrawingView()
 {
@@ -75,19 +76,19 @@ void TrackBodyDrawingView::mouseMoveEvent(QMouseEvent *evt)
     if (m_bIsMultiSelectionMode) {
         m_selectionEnd = mapToScene(evt->pos());
         m_selectObj->setPos(m_selectionStart, m_selectionEnd);
-        m_selectObj->update();
+        m_selectObj->prepareGeometryChange();
         evt->accept();
     }
-    else if (!evt->modifiers().testFlag(Qt::ShiftModifier) && evt->buttons().testFlag(Qt::LeftButton)) {
+    if (!evt->modifiers().testFlag(Qt::ShiftModifier) && evt->buttons().testFlag(Qt::LeftButton)) {
         QPoint pos = evt->pos();
         int XDirection = 0;
         int YDirection = 0;
         int distance = SCROLL_DISTANCE;
         if (pos.x() < SCROLL_DISTANCE) {
-            XDirection = -1;
+            XDirection = 1;
         }
         else if (width() - pos.x() < SCROLL_DISTANCE) {
-            XDirection = 1;
+            XDirection = -1;
         }
         if (pos.y() < SCROLL_DISTANCE) {
             YDirection = -1;
@@ -129,7 +130,7 @@ void TrackBodyDrawingView::mousePressEvent(QMouseEvent *event)
         if (!isAnchor && Clips.count() <= 0) {
             m_bIsMultiSelectionMode = true;
             m_selectionStart = mapToScene(event->pos());
-            scene()->addItem(m_selectObj);
+            this->scene()->addItem(m_selectObj);
             m_selectObj->setPos(m_selectionStart, m_selectionStart);
             event->accept();
         }
@@ -151,8 +152,25 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
     else if (m_bIsMultiSelectionMode) {
         m_bIsMultiSelectionMode = false;
         m_selectionEnd = mapToScene(event->pos());
-        scene()->removeItem(m_selectObj);
+        m_selectObj->setPos(m_selectionEnd, m_selectionEnd);
+        this->scene()->removeItem(m_selectObj);
         //TODO: get items in selection area
+
+        auto selectionRect = QRectF(m_selectionStart,m_selectionEnd);
+        if(m_selectionStart.x()>=m_selectionEnd.x()&&m_selectionStart.y()>=m_selectionEnd.y())
+            selectionRect = QRectF(m_selectionEnd,m_selectionStart);
+
+        auto curSelectionItem = this->scene()->items(selectionRect,Qt::IntersectsItemBoundingRect);
+        QList<ClipItem*> curSelectedClip;
+        std::for_each(curSelectionItem.begin(), curSelectionItem.end(),[&](QGraphicsItem* curItem)->void
+        {
+            auto clipItem = dynamic_cast<ClipItem*>(curItem);
+            if(curItem==nullptr)
+                return;
+            curSelectedClip.push_back(clipItem);
+        });
+
+        TimelineInstance()->setSelectedClip(curSelectedClip,curSelectedClip.empty());
         event->accept();
     }
     else {
@@ -230,26 +248,38 @@ void TrackBodyDrawingView::ClipChanged(const QString &trackKey, const QString &c
     auto curTrack = getTrackBody(trackKey);
     if (!curTrack)
         return;
-    if (mode > 0) {
+    if (mode ==1 ) {
         curTrack->addClipItem(clipKey);
+        updateGeometry();
     }
-    else {
+    else if (mode == -1)
+    {
         curTrack->removeClipItem(clipKey);
+        update();
     }
-    updateGeometry();
 }
 void TrackBodyDrawingView::singleClipChanged(const QString &trackKey, const QString &clipKey)
 {
     auto curTrack = getTrackBody(trackKey);
     if (!curTrack)
         return;
-    auto curRect = getViewPortRect();
     curTrack->updateClipItem(clipKey);
-    update((int)curRect.x(), (int)curRect.y(), (int)curRect.width(), (int)curRect.height());
+    update(getViewPortRect().toRect());
 }
 void TrackBodyDrawingView::setDrawingAreaSize(int width, int height)
 {
     SelfContainedSceneView::setDrawingAreaSize(width, height);
+}
+void TrackBodyDrawingView::emptyTracks()
+{
+    std::for_each(m_bodyItems.begin(), m_bodyItems.end(),[&]( auto item)->void
+    {
+        if(item!=nullptr)
+        {
+            SAFE_DELETE(item);
+        }
+    });
+    m_bodyItems.clear();
 }
 
 

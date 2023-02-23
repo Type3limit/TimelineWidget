@@ -18,6 +18,8 @@ public:
     void setPos(QPointF start,QPointF end);
 protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+
+    friend class TrackBodyDrawingView;
 };
 
 

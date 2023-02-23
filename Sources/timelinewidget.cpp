@@ -74,7 +74,6 @@ void TimelineWidget::wheelEvent(QWheelEvent *event)
     m_trackBodyView->scrollToCursor();
     m_rulerView->rulerUpdate();
     m_tickView->update();
-
     QWidget::wheelEvent(event);
 }
 
@@ -209,24 +208,26 @@ void TimelineWidget::setCurPos(ulong pos, bool shouldEmitSignal)
 
 void TimelineWidget::setFrameTick(ulong curData, bool shouldEmitSignal)
 {
-    if (m_timelineData.m_ulFrameTick != curData) {
-        m_timelineData.m_ulFrameTick = curData;
-        auto frameWidth = (qreal)((maxDuration() / frameTick()) * MIN_TICK_WIDTH);
-        auto widthInUse = frameWidth;
+    //if (m_timelineData.m_ulFrameTick != curData) {
+    m_timelineData.m_ulFrameTick = curData;
+    auto frameWidth = (qreal)((maxDuration() / frameTick()) * MIN_TICK_WIDTH);
+    auto widthInUse = frameWidth;
 
-        if (frameWidth < getArea(Area::RightTop).width()) {
-            widthInUse = (ulong)(getArea(Area::RightTop).width());
-        }
-        if (m_rulerView) {
-            m_rulerView->setDrawingAreaSize((int)widthInUse, ui->RightTopRegion->height() - WIDGET_MARGIN * 2);
-        }
-        if (m_trackBodyView) {
-            m_trackBodyView->setDrawingAreaSize((int)widthInUse, ui->RightBottomRegion->height() - WIDGET_MARGIN * 2);
-        }
-        if (shouldEmitSignal) {
-            emit FrameTickChanged(m_timelineData.m_ulFrameTick);
-        }
+    if (frameWidth < getArea(Area::RightTop).width()) {
+        widthInUse = (ulong)(getArea(Area::RightTop).width());
     }
+    if (m_rulerView) {
+        m_rulerView->setDrawingAreaSize((int)widthInUse, ui->RightTopRegion->height() - WIDGET_MARGIN * 2);
+    }
+    if (m_trackBodyView) {
+        m_trackBodyView->setDrawingAreaSize((int)widthInUse, ui->RightBottomRegion->height() - WIDGET_MARGIN * 2);
+    }
+    if (shouldEmitSignal) {
+        emit FrameTickChanged(m_timelineData.m_ulFrameTick);
+    }
+
+    //}
+
 }
 
 int TimelineWidget::getTrackCount() const
@@ -238,11 +239,9 @@ int TimelineWidget::getTrackCount() const
 #pragma region Track option
 bool TimelineWidget::addTrack(const QString &curKey, int trackType, int index = -1)
 {
-    IntervalWatcher iw;
-    iw.start();
+
     auto actualIndex = (index < 0 ? getTrackCount() : (index >= getTrackCount() ? getTrackCount() : index));
     TrackMime curData{curKey, actualIndex, static_cast<SpecificType>(trackType)};
-    m_sync.lock();
     //修改源数据
     auto curTracks = m_timelineData.getTracks();
     for (auto itr: curTracks) {
@@ -254,9 +253,7 @@ bool TimelineWidget::addTrack(const QString &curKey, int trackType, int index = 
     bool result;
     m_timelineData.addTrack(TrackMime(curKey, actualIndex, static_cast<SpecificType>(trackType)));
     result = (m_trackHeadView->addTrackHead(curData) && m_trackBodyView->addTrackBody(curData));
-    m_sync.unlock();
-    iw.stop();
-    //qDebug() << iw.milliSecond() << "ms after add track";
+
     return result;
 }
 void TimelineWidget::alterTrackData(const QString &key, const TrackMime &curData)
@@ -331,19 +328,26 @@ void TimelineWidget::removeClip(const ClipMime &clipKey, bool searchWhenTrackKey
                      << "],which with an empty track id without search";
             return;
         }
+
     }
-    if (!m_timelineData.getTrack(searchTrack, [&](TrackMime curTrack) -> bool
-    {
-        return curTrack.getClip(clipKey.id).isDefaultData();
-    })) {
-        qDebug() << "remove clip failed,after search ,can not find clip[" << clipKey.id
-                 << "],which with an empty track id";
-        return;
+    else {
+        m_timelineData.getTrack(searchTrack, clipKey.trackId);
+    }
+    if (searchTrack.isDefaultData()) {
+        if (!m_timelineData.getTrack(searchTrack, [&](TrackMime curTrack) -> bool
+        {
+            return curTrack.getClip(clipKey.id).isDefaultData();
+        })) {
+            qDebug() << "remove clip failed,after search ,can not find clip[" << clipKey.id
+                     << "],which with an empty track id";
+            return;
+        }
     }
     m_timelineData.removeClip(searchTrack.id, clipKey.id);
     if (shouldEmitSignal) {
         emit TrackClipChanged(searchTrack.id, clipKey.id, -1);
     }
+
 }
 void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal)
 {
@@ -391,15 +395,18 @@ void TimelineWidget::alterClipData(const QString &key,
             qDebug() << "change track failed with track id:[" << mime.trackId << "],can not find it";
             return;
         }
-        removeClip(curTrack.getClip(key));//原始轨道删除
-        addClip(mime.trackId, mime);//新轨道添加
+       ClipMime origin = mime;
+       origin.trackId = curTrack.id;
+       removeClip(origin);
+       addClip(newTrack.id,mime);
     }
     else {
         m_timelineData.setClip(mime.trackId, mime.id, mime);
+        if (shouldEmitSignal) {
+            emit ClipUpdated(mime.trackId, mime.id);
+        }
     }
-    if (shouldEmitSignal) {
-        emit ClipUpdated(mime.trackId, mime.id);
-    }
+
 }
 
 void TimelineWidget::setSelectedClip(const QString &clip, bool isCancel)
@@ -410,6 +417,12 @@ void TimelineWidget::setSelectedClip(const QString &clip, bool isCancel)
     else {
         m_selectedClips.clear();
         m_selectedClips.push_back(clip);
+        auto curClipMime = m_timelineData.getClip(clip, "");
+        auto curSelectedItemTrack = m_trackBodyView->getTrackBody(curClipMime.trackId);
+        auto curClipItem = curSelectedItemTrack->getClipItem(clip);
+        if (curClipItem != nullptr && !m_selectedClipsCache.contains(clip)) {
+            m_selectedClipsCache.insert(clip, curClipItem);
+        }
     }
 
 }
@@ -427,10 +440,51 @@ void TimelineWidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
             if (!m_selectedClips.contains(curClip)) {
                 m_selectedClips.push_back(curClip);
             }
+            auto curClipMime = m_timelineData.getClip(curClip, "");
+            auto curSelectedItemTrack = m_trackBodyView->getTrackBody(curClipMime.trackId);
+            auto curClipItem = curSelectedItemTrack->getClipItem(curClip);
+            if (curClipItem != nullptr && !m_selectedClipsCache.contains(curClip)) {
+                m_selectedClipsCache.insert(curClip, curClipItem);
+            }
         });
     }
 
 }
+void TimelineWidget::setSelectedClip(const QList<ClipItem *> &clips, bool isCancel)
+{
+    if (isCancel) {
+
+        m_selectedClips.clear();
+        m_trackBodyView->update();
+    }
+    else {
+        std::for_each(clips.begin(), clips.end(), [&](ClipItem *curClip) -> void
+        {
+            if (curClip == nullptr)
+                return;
+
+            if (!m_selectedClips.contains(curClip->m_mimeKey)) {
+                m_selectedClips.push_back(curClip->m_mimeKey);
+            }
+            if (!m_selectedClipsCache.contains(curClip->m_mimeKey)) {
+                m_selectedClipsCache.insert(curClip->m_mimeKey, curClip);
+            }
+            curClip->prepareGeometryChange();
+        });
+    }
+
+}
+
+void TimelineWidget::updateSelectedSourceCache(const QString& clipId,ClipItem* clip)
+{
+    if (!m_selectedClipsCache.contains(clipId)) {
+        m_selectedClipsCache.insert(clipId, clip);
+    }
+    else{
+        m_selectedClipsCache[clipId] = clip;
+    }
+}
+
 void TimelineWidget::setClipMovement(int xDiff, int yDiff)
 {
     if (m_selectedClips.count() <= 0)
@@ -438,7 +492,7 @@ void TimelineWidget::setClipMovement(int xDiff, int yDiff)
     bool shouldUpdateMaxDuration = false;
     //pre check;
 
-    m_timelineData.getClips(m_selectedClips);
+    //m_timelineData.getClips(m_selectedClips);
 
     std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &curKey) -> void
     {
@@ -519,11 +573,102 @@ void TimelineWidget::adaptTimelineLength()
     auto curFrameTick = desirePos / (areaWidth / MIN_TICK_WIDTH);
     auto setFrame = (long)(curFrameTick < 1 ? 1 : (curFrameTick > maxFrameTick() ? maxFrameTick() : curFrameTick));
     if (setFrame >= 3) {
-        setFrame = setFrame % 2 ? setFrame - 1 : setFrame - 2;//not max
+        setFrame = setFrame % 2 ? setFrame - 1 : setFrame - 2;//do not max
     }
     //qDebug()<<"with frame tick:"<<setFrame;
     setFrameTick(setFrame);
     update();
 }
+void TimelineWidget::clipMoved(int x, int y, bool isOver)
+{
+    if(isOver)
+    {
+        //to get a current timeline tracks backup;
+        m_clipRange.buildFromTimelineData(m_timelineData.getTracks());
+    }
+    std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &clipKey) -> void
+    {
+        if (!m_selectedClipsCache.contains(clipKey)) {
+            return;
+        }
+
+        if (!isOver) {
+            m_selectedClipsCache[clipKey]->clipDrag(x, y);
+        }
+        else {
+            m_selectedClipsCache[clipKey]->stopClipDrag();
+        }
+    });
+    m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
+}
+QList<ClipItem *> TimelineWidget::getAllSelectedClip()
+{
+    QList<ClipItem *> result;
+    std::for_each(m_selectedClips.begin(), m_selectedClips.end(),[&](const QString& clipKey)->void
+    {
+        if(m_selectedClipsCache.contains(clipKey))
+        {
+            result.push_back(m_selectedClipsCache[clipKey]);
+        }
+    });
+    return result;
+}
 
 #pragma  endregion
+
+#pragma region dataResume
+
+bool TimelineWidget::buildFromJsonFile(const QString &filePath)
+{
+    return buildFromJson(ExtensionMethods::QStringExtension::readAllText(filePath));
+}
+bool TimelineWidget::buildFromJson(const QString &data)
+{
+
+    if (ExtensionMethods::QStringExtension::isNullOrEmpty(data))
+        return false;
+    IntervalWatcher iw;
+    iw.start();
+    m_trackBodyView->emptyTracks();
+    m_trackHeadView->emptyTracks();
+    FROM_JSON(m_timelineData, data.toStdString().c_str());
+    std::sort(m_timelineData.tracks.begin(),
+              m_timelineData.tracks.end(),
+              [&](const TrackMime &left, const TrackMime &right) -> bool
+              {
+                  return left.index < right.index;
+              });
+    for (const auto &track: m_timelineData.tracks) {
+        if (!(m_trackHeadView->addTrackHead(track) && m_trackBodyView->addTrackBody(track))) {
+            qDebug() << "read from json data failed! add track failed!";
+            return false;
+        }
+        for (const auto &clip: track.clips) {
+            emit TrackClipChanged(track.id, clip.id, 1);
+            updateMaxDuration();
+        }
+
+    }
+
+    setMaxDuration(m_timelineData.m_ulMaxDuration);
+    setFrameTick(m_timelineData.m_ulFrameTick);
+    setCurPos(m_timelineData.m_ulCurPos);
+    m_trackBodyView->scrollToCursor();
+    iw.stop();
+    qDebug()<<iw.milliSecond()<<"ms after build json data";
+    return true;
+}
+double TimelineWidget::percentPerUnit()
+{
+    return (maxDuration()) / m_trackBodyView->scene()->width();
+}
+bool TimelineWidget::getTrackByVerticalPos(double yPos, TrackMime &data)
+{
+    auto trackBodyHeight = getTrackCount() * TRACK_HEIGHT;
+    auto curArea = getArea(RightBottom);
+    auto index = (int)ceil(yPos - ((curArea.height() - trackBodyHeight) / 2)) / TRACK_HEIGHT;
+    data = getTrackData(index);
+    return !data.isDefaultData();
+}
+
+#pragma endregion

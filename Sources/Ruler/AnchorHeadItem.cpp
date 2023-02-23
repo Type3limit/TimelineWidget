@@ -111,5 +111,6 @@ void AnchorHeadItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void AnchorHeadItem::forceUpdate()
 {
     prepareGeometryChange();
+    update();
 }
 

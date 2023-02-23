@@ -108,10 +108,10 @@ public:
     ///获取所有切片
     QList<ClipMime> getClips()
     {
-        return QList<ClipMime>::fromVector(QVector<ClipMime>::fromStdVector((clips)));//{clips.begin(), clips.end()};
+        return {clips.begin(), clips.end()};
     }
     ///获取指定条件的切片
-    QList<ClipMime> getClips(const std::function<bool(ClipMime)> &matchFunction)
+    QList<ClipMime> getClips(const std::function<bool(const ClipMime&)> &matchFunction)
     {
         QList<ClipMime> res;
         for (const auto &itr: clips) {

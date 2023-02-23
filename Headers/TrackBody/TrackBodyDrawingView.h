@@ -36,18 +36,17 @@ public:
     TrackBodyItem* getTrackBody(const QString& key);
     ///更改一个项
     TrackBodyItem* updateTrackBody(const QString& key, TrackBodyItem* curData);
-public slots:
-    void OnTrackHeadUpdate(const QString& key);
+    ///删除所有轨道
+    void emptyTracks();
 
 public slots:
+    void OnTrackHeadUpdate(const QString& key);
     void ScrolledTo(int pos);
     void ScrollToPos(int pos);
     void ClipChanged(const QString& trackKey,const QString& clipKey,int mode);
     void singleClipChanged(const QString& trackKey,const QString& clipKey);
-    signals:
+signals:
     void ScrollChanged(int pos);
-
-
 private:
     volatile bool m_bIsRightButtonPressed = false;
     volatile bool m_bIsMultiSelectionMode = false;

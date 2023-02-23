@@ -13,9 +13,12 @@ void ShadowClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
+    painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(Qt::black);
-    painter->drawRect(m_drawRect);
-    painter->fillRect(m_drawRect,QBrush(QColor(157,171,194,128)));
+    painter->drawRoundedRect(m_drawRect,5,5);
+    QPainterPath path;
+    path.addRoundedRect(m_drawRect,5,5);
+    painter->fillPath(path,QBrush(QColor(157,171,194,128)));
 }
 void ShadowClipItem::forceUpdate()
 {
