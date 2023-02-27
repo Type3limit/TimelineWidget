@@ -51,3 +51,18 @@ bool ClipRange::hasCollision(const QString &trackKey, const QString &clipKey, QL
     }
     return collisionItem.count() > 0;
 }
+bool ClipRange::isClipExistAt(uint64_t pos, const QString &trackKey, QList<QString> &datas)
+{
+    if (!m_datas.contains(trackKey))
+       return false;
+    auto begin = m_datas[trackKey].begin();
+    auto itr = begin;
+    auto end = m_datas[trackKey].end();
+    while(itr != end)
+    {
+        if(itr.value()[HEAD]<=pos&&itr.value()[TAIL]>=pos)
+            datas.push_back(itr.key());
+    }
+    return datas.count()>0;
+}
+

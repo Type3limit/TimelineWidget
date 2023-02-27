@@ -13,8 +13,6 @@
 #include <type_traits>
 namespace ExtensionMethods
 {
-
-
 ///
 /// The SourcesExtension class , implemented a bunch of methods to enhance operations with sets
 ///
@@ -25,7 +23,7 @@ public:
     ///get the first element that matched with condition,need pass the total count of array,if there has no matched one,return defaultValue
     static inline finderType firstOf(const finderType *sources,
                                      const int count,
-                                     const std::function<bool(finderType)>& MatchFunction,
+                                     const std::function<bool(finderType)> &MatchFunction,
                                      const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -39,7 +37,7 @@ public:
     }
     ///get the first element of QList that matched with condition,if there has no matched one,return defaultValue
     static inline finderType firstOf(const QList<finderType> &sources,
-                                     const std::function<bool(finderType)>& MatchFunction,
+                                     const std::function<bool(finderType)> &MatchFunction,
                                      const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -56,7 +54,7 @@ public:
     ///get the last element that matched with condition,need pass the total count of array,if there has no marched one,return defaultValue
     static inline finderType lastOf(const finderType *sources,
                                     const int count,
-                                    const std::function<bool(finderType)>& MatchFunction,
+                                    const std::function<bool(finderType)> &MatchFunction,
                                     const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -69,7 +67,7 @@ public:
     }
     ///get the last element of QList that matched with condition,if there has no marched one,return defaultValue
     static inline finderType lastOf(const QList<finderType> &sources,
-                                    const std::function<bool(finderType)>& MatchFunction,
+                                    const std::function<bool(finderType)> &MatchFunction,
                                     const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -84,7 +82,7 @@ public:
     }
     ///get elements which is matched the condition,need pass the total count of array,if there has no matched,return an empty sources
     static inline QList<finderType>
-    where(const finderType *sources, const int count,const std::function<bool(finderType)>& MatchFunction)
+    where(const finderType *sources, const int count, const std::function<bool(finderType)> &MatchFunction)
     {
         QList<finderType> findResult;
         for (int i = 0; i < count; i++) {
@@ -96,7 +94,7 @@ public:
     }
     ///get elements of QList which is marched the condition,if there has no marched,return an empty sources
     static inline QList<finderType>
-    where(const QList<finderType> &sources,const std::function<bool(finderType)>& MatchFunction)
+    where(const QList<finderType> &sources, const std::function<bool(finderType)> &MatchFunction)
     {
         QList<finderType> findResult;
         auto begin = sources.begin();
@@ -109,7 +107,7 @@ public:
         return findResult;
     }
     ///traverse element in arrays and execute the same function
-    static inline void eachBy(const QList<finderType> &sources,const std::function<void(finderType)>& executeFunc)
+    static inline void eachBy(const QList<finderType> &sources, const std::function<void(finderType)> &executeFunc)
     {
         auto begin = sources.begin();
         while (begin != sources.end()) {
@@ -118,7 +116,8 @@ public:
         }
     }
     ///traverse element in arrays and execute the same function
-    static inline void eachBy(const finderType *sources, int totalCount,const std::function<void(finderType)>& executeFunc)
+    static inline void
+    eachBy(const finderType *sources, int totalCount, const std::function<void(finderType)> &executeFunc)
     {
         for (int i = 0; i < totalCount; i++) {
             executeFunc(sources[i]);
@@ -181,28 +180,38 @@ public:
     }
     ///in QList,take a Res type result for each finderType
     template<typename Res>
-    static inline QList<Res> select (const QList<finderType>& sources,std::function<Res(finderType)> selectFunc)
+    static inline QList<Res> select(const QList<finderType> &sources, std::function<Res(finderType)> selectFunc)
     {
         QList<Res> res;
-        for(auto i:sources)
-        {
+        for (auto i: sources) {
             res.push_back(selectFunc);
         }
         return res;
     }
     ///in arrays,task a Res type result for each finderType
     template<typename Res>
-    static inline QList<Res> select (const finderType* sources,int sourcesCount,std::function<Res(finderType)> selectFunc)
+    static inline QList<Res>
+    select(const finderType *sources, int sourcesCount, std::function<Res(finderType)> selectFunc)
     {
         QList<Res> res;
-        for(int i = 0;i<sourcesCount;i++)
-        {
+        for (int i = 0; i < sourcesCount; i++) {
             res.push_back(sources[i]);
         }
         return res;
     }
 
-
+    ///in QList, depart origin source to two parts based on matchFunc
+    static inline void classification(const QList<finderType> &source, std::function<bool(finderType)> matchFunc,
+                                      QList<finderType> &ifMatchResult, QList<finderType> &notMatchResult)
+    {
+        std::for_each(source.begin(), source.end(), [&](const finderType &item) -> void
+        {
+            if (matchFunc(item))
+                ifMatchResult.push_back(item);
+            else
+                notMatchResult.push_back(item);
+        });
+    }
 };
 
 ///
@@ -297,7 +306,6 @@ public:
         }
         return result;
     }
-
 
 };
 }

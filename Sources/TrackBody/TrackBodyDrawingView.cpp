@@ -154,8 +154,6 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
         m_selectionEnd = mapToScene(event->pos());
         m_selectObj->setPos(m_selectionEnd, m_selectionEnd);
         this->scene()->removeItem(m_selectObj);
-        //TODO: get items in selection area
-
         auto selectionRect = QRectF(m_selectionStart,m_selectionEnd);
         if(m_selectionStart.x()>=m_selectionEnd.x()&&m_selectionStart.y()>=m_selectionEnd.y())
             selectionRect = QRectF(m_selectionEnd,m_selectionStart);

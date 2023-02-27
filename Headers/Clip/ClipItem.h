@@ -18,8 +18,8 @@ public:
     ~ClipItem();
     bool insertToTrack(const QString& trackKey);
     bool removeFromTrack();
-    ClipMime getMimeData(bool searchWhenTrackKeyEmpty = true) const;
-    TrackMime getTrackData(bool searchWhenTrackKeyEmpty = true)const;
+    ClipMime getMimeData(const QString& clipKey,bool searchWhenTrackKeyEmpty = true) const;
+    TrackMime getTrackData(const QString& trackKey,bool searchWhenTrackKeyEmpty = true)const;
     void forceUpdate();
 protected:
     QRectF boundingRect() const override;
@@ -35,6 +35,7 @@ private:
     void Init();
     void clipDrag(int x,int y);
     void stopClipDrag();
+    void checkForCollision();
 private:
     volatile bool m_isGrouped = false;
     volatile bool m_isDragMoved= false;

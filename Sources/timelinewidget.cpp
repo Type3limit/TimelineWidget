@@ -506,7 +506,6 @@ void TimelineWidget::setClipMovement(int xDiff, int yDiff)
             xDiff -= (int)curPos;//let others move with this
             curMime.startPos = 0;
         }
-        //TODO:add y diff to move track
         alterClipData(curMime.id, curMime.trackId, curMime);
     });
     if (shouldUpdateMaxDuration)

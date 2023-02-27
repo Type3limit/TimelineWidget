@@ -41,7 +41,9 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     //iw.start();
     auto countOfTrack = timeline()->getTrackCount();
     auto trackBodyHeight = countOfTrack * TRACK_HEIGHT;
-    auto trackData = getTrackData();
+    auto trackData = getTrackData(m_trackMimeKey);
+    if (trackData.isDefaultData())
+        return;
     auto curData = trackData.getClip(m_mimeKey);
     auto xIndex = ceil(((double)(curData.startPos) / timeline()->frameTick() * MIN_TICK_WIDTH));
     auto width = ceil((double)(curData.duration) / timeline()->frameTick() * MIN_TICK_WIDTH);
@@ -75,11 +77,11 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     painter->setPen(QPen(Qt::white));
     painter->setBrush(QBrush(paintColor));
     QPainterPath path;
-    path.addRoundedRect(QRectF(xIndex, yIndex+0.5, width, TRACK_HEIGHT-1),5,5);
+    path.addRoundedRect(QRectF(xIndex, yIndex + 0.5, width, TRACK_HEIGHT - 1), 5, 5);
     painter->fillPath(path, QBrush(paintColor));
     auto limitedArea = timeline()->getViewPort(TimelineWidget::RightBottom);
     if (m_isOnHover || timeline()->isSelected(m_mimeKey)) {
-        painter->drawRoundedRect(QRectF(xIndex, yIndex, width, TRACK_HEIGHT),5,5);
+        painter->drawRoundedRect(QRectF(xIndex, yIndex, width, TRACK_HEIGHT), 5, 5);
     }
 //    if (m_isDragMoved) {
 //        QPainterPath curPath;
@@ -94,9 +96,11 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     for (int curX = startX; curX <= xIndex + width; curX += 20) {
         if ((xIndex + width) - curX < 20)
             return;
-        if (shouldDrawText) {
-            painter->drawText(curX, (int)yIndex, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
-        }
+        //if (shouldDrawText) {
+        painter->drawText(curX, (int)yIndex, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
+        painter->drawText(curX, (int)yIndex + 10, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
+        painter->drawText(curX, (int)yIndex + 20, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
+        //}
         if (shouldDrawPic) {
             painter->drawPixmap(QRect(curX, yIndex, 20, 20), m_image);
         }
@@ -107,7 +111,7 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
 QRectF ClipItem::boundingRect() const
 {
     auto trackBodyHeight = timeline()->getTrackCount() * TRACK_HEIGHT;
-    auto trackData = getTrackData();
+    auto trackData = getTrackData(m_trackMimeKey);
     auto curData = trackData.getClip(m_mimeKey);
     auto xIndex = ((double)(curData.startPos) / timeline()->frameTick()) * MIN_TICK_WIDTH;
     auto width = ((double)(curData.duration) / timeline()->frameTick()) * MIN_TICK_WIDTH;
@@ -135,13 +139,13 @@ bool ClipItem::removeFromTrack()
     m_trackMimeKey = "";
     return true;
 }
-ClipMime ClipItem::getMimeData(bool searchWhenTrackKeyEmpty) const
+ClipMime ClipItem::getMimeData(const QString &clipKey, bool searchWhenTrackKeyEmpty) const
 {
-    return getTrackData(searchWhenTrackKeyEmpty).getClip(m_mimeKey);
+    return getTrackData(m_trackMimeKey, searchWhenTrackKeyEmpty).getClip(clipKey);
 }
-TrackMime ClipItem::getTrackData(bool searchWhenTrackKeyEmpty) const
+TrackMime ClipItem::getTrackData(const QString &trackKey, bool searchWhenTrackKeyEmpty) const
 {
-    if (m_trackMimeKey.isEmpty()) {
+    if (trackKey.isEmpty()) {
         if (!searchWhenTrackKeyEmpty)
             return {};
         auto TrackCount = timeline()->getTrackCount();
@@ -156,7 +160,7 @@ TrackMime ClipItem::getTrackData(bool searchWhenTrackKeyEmpty) const
     }
     else {
         TrackMime curTrackData;
-        if (!timeline()->getTrackData(curTrackData, m_trackMimeKey))
+        if (!timeline()->getTrackData(curTrackData, trackKey))
             return {};
         return curTrackData;
     }
@@ -172,7 +176,9 @@ void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             timeline()->setSelectedClip(QList<QString>{m_mimeKey}, timeline()->isSelected(m_mimeKey));
         }
+            //TODO:add width expand process
         else {
+
             if (!timeline()->isSelected(m_mimeKey)) {
                 timeline()->setSelectedClip(m_mimeKey, false);
             }
@@ -230,7 +236,7 @@ void ClipItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 }
 void ClipItem::clipDrag(int x, int y)
 {
-    if(this->scene()==nullptr)
+    if (this->scene() == nullptr)
         return;
     if (!m_isDragMoved) {
         m_isDragMoved = true;
@@ -240,9 +246,8 @@ void ClipItem::clipDrag(int x, int y)
     }
     else {
         m_shadowRect = QRectF(m_shadowRect.x() + x, m_shadowRect.y() + y,
-                               m_shadowRect.width(), m_shadowRect.height());
-        if (m_shadow)
-        {
+                              m_shadowRect.width(), m_shadowRect.height());
+        if (m_shadow) {
             m_shadow->setDrawRect(m_shadowRect);
             m_shadow->forceUpdate();
         }
@@ -250,7 +255,7 @@ void ClipItem::clipDrag(int x, int y)
 }
 void ClipItem::stopClipDrag()
 {
-    if(this->scene()==nullptr)
+    if (this->scene() == nullptr)
         return;
     if (m_isDragMoved) {
         if (m_shadow) {
@@ -259,7 +264,7 @@ void ClipItem::stopClipDrag()
         }
         this->scene()->removeItem(m_shadow);
         auto xDelta = m_shadowRect.x() - m_originRect.x();
-        auto curMime = getMimeData();
+        auto curMime = getMimeData(m_mimeKey);
         if (curMime.isDefaultData())
             return;
         auto curFrameMoved = (long)ceil(xDelta * timeline()->percentPerUnit());
@@ -268,23 +273,16 @@ void ClipItem::stopClipDrag()
                            (curX + curFrameMoved > timeline()->maxDuration() ?
                             timeline()->maxDuration() : curX + curFrameMoved);
         TrackMime readyTrackData;
+        // using center position to determine which track to insert
+        timeline()->getTrackByVerticalPos((m_shadowRect.y() + TRACK_HEIGHT / 2), readyTrackData);
 
-        timeline()->getTrackByVerticalPos((m_shadowRect.y() +TRACK_HEIGHT/2),readyTrackData);
-        bool isChangeTrack =false;
-        if(!readyTrackData.isDefaultData())
-        {
+        bool isChangeTrack = false;
+        if (!readyTrackData.isDefaultData()) {
             isChangeTrack = true;
             curMime.trackId = readyTrackData.id;
         }
 
-        // first, check collision.
-        timeline()->m_clipRange.oneClipChanged(curMime);
-        QList<QString> collisionItems;
-        if(timeline()->m_clipRange.hasCollision(curMime.trackId,curMime.id,collisionItems))
-        {
-            //TODO:move other collision clips;
-
-        }
+        //checkForCollision();
 
         timeline()->alterClipData(curMime.id, m_trackMimeKey, curMime);
 
@@ -299,8 +297,59 @@ void ClipItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 }
 void ClipItem::forceUpdate()
 {
-
     prepareGeometryChange();
     update();
+}
+void ClipItem::checkForCollision()
+{
+    auto curMime = getMimeData(m_mimeKey);
+    auto curRange = ClipRange(timeline()->m_clipRange);
+    curRange.oneClipChanged(curMime);
+    QList<QString> collisionItems;
+    if (!curRange.hasCollision(curMime.trackId, curMime.id, collisionItems)) {
+        return;
+    }
+    TrackMime trackData;
+    if (!timeline()->getTrackData(trackData, m_trackMimeKey)) {
+        return;
+    }
+    auto collisionClips = trackData.getClips([](const ClipMime &curItem) -> bool
+                                             { return !(timeline()->isSelected(curItem.id)); });
+    QList<ClipMime> headClips, tailClips;
+    ExtensionMethods::SourcesExtension<ClipMime>::classification(collisionClips,
+                                                                 [&curMime](const ClipMime &item) -> bool
+                                                                 {
+                                                                     return item.startPos <= curMime.startPos;
+                                                                 },
+                                                                 headClips,
+                                                                 tailClips);
+    //let these clips in order
+    std::sort(headClips.begin(), headClips.end(), [](const ClipMime &l, const ClipMime &r) -> bool
+    {
+        return l.startPos < r.startPos;
+    });
+    std::sort(tailClips.begin(), tailClips.end(), [](const ClipMime &l, const ClipMime &r) -> bool
+    {
+        return l.startPos < r.startPos;
+    });
+    //TODO:for head ,depart it.
+
+    //TODO:for tail ,move to front,if front space is not enough,move current clip.
+    QMap<ClipMime, ulong> shouldMoveBack;
+
+    for (int i = 0; i < tailClips.count(); i++) {
+        auto itr = tailClips[i];
+        if (collisionItems.contains(itr.id)) {
+            for (int j = i + 1; j < tailClips.count(); j++) {
+                auto nextClip = tailClips[j];
+            }
+        }
+        else {
+            if (itr.startPos > (curMime.startPos + curMime.duration)) {
+                break;
+            }
+        }
+    }
+
 }
 
