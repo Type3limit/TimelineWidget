@@ -275,17 +275,14 @@ void ClipItem::stopClipDrag()
         TrackMime readyTrackData;
         // using center position to determine which track to insert
         timeline()->getTrackByVerticalPos((m_shadowRect.y() + TRACK_HEIGHT / 2), readyTrackData);
-
         bool isChangeTrack = false;
+        auto originTrackKey = curMime.trackId;
         if (!readyTrackData.isDefaultData()) {
             isChangeTrack = true;
             curMime.trackId = readyTrackData.id;
         }
-
-        //checkForCollision();
-
+        checkForCollision(curMime,isChangeTrack?originTrackKey:"");
         timeline()->alterClipData(curMime.id, m_trackMimeKey, curMime);
-
         prepareGeometryChange();
     }
     m_isDragMoved = false;
@@ -300,17 +297,16 @@ void ClipItem::forceUpdate()
     prepareGeometryChange();
     update();
 }
-void ClipItem::checkForCollision()
+void ClipItem::checkForCollision(ClipMime curMime,const QString& originTrackKey)
 {
-    auto curMime = getMimeData(m_mimeKey);
     auto curRange = ClipRange(timeline()->m_clipRange);
-    curRange.oneClipChanged(curMime);
+    curRange.oneClipChanged(curMime,originTrackKey);
     QList<QString> collisionItems;
     if (!curRange.hasCollision(curMime.trackId, curMime.id, collisionItems)) {
         return;
     }
     TrackMime trackData;
-    if (!timeline()->getTrackData(trackData, m_trackMimeKey)) {
+    if (!timeline()->getTrackData(trackData, originTrackKey.isEmpty()?m_trackMimeKey:curMime.trackId)) {
         return;
     }
     auto collisionClips = trackData.getClips([](const ClipMime &curItem) -> bool
@@ -334,22 +330,15 @@ void ClipItem::checkForCollision()
     });
     //TODO:for head ,depart it.
 
-    //TODO:for tail ,move to front,if front space is not enough,move current clip.
-    QMap<ClipMime, ulong> shouldMoveBack;
+    //for tail ,if front space is not enough,move tail clips.
+    if(tailClips.count()>0&&tailClips[0].startPos<curMime.startPos+curMime.duration)
+    {
+        auto tailDiff = (curMime.startPos+curMime.duration)-tailClips[0].startPos;
+        for (int i = 0; i < tailClips.count(); i++) {
 
-    for (int i = 0; i < tailClips.count(); i++) {
-        auto itr = tailClips[i];
-        if (collisionItems.contains(itr.id)) {
-            for (int j = i + 1; j < tailClips.count(); j++) {
-                auto nextClip = tailClips[j];
-            }
-        }
-        else {
-            if (itr.startPos > (curMime.startPos + curMime.duration)) {
-                break;
-            }
+            tailClips[i].startPos+=tailDiff;
+            timeline()->alterClipData(tailClips[i].id,tailClips[i].trackId,tailClips[i]);
         }
     }
-
 }
 

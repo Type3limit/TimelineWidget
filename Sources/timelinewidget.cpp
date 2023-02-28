@@ -409,6 +409,36 @@ void TimelineWidget::alterClipData(const QString &key,
 
 }
 
+
+void TimelineWidget::alterClipData(const QString &key,
+                                   const QString &trackKey,
+                                   const QList<ClipMime>& mimes,
+                                   bool searchWhenTrackKeyEmpty)
+{
+    TrackMime curTrack;
+    //无法根据Track key找到轨道的情况下，尝试搜索轨道
+    if (!m_timelineData.getTrack(curTrack, trackKey)) {
+        if (!searchWhenTrackKeyEmpty) {
+            return;
+        }
+        if (!m_timelineData.getTrack(curTrack, [&](TrackMime track) -> bool
+        { return !track.getClip(key).isDefaultData(); })) {
+            qDebug() << "alter clip with key:[" << key << "]failed,can not find it in any track";
+            return;
+        }
+    }
+
+    auto originClip = curTrack.getClip(key);
+    if(originClip.isDefaultData())
+        return;
+    removeClip(originClip);
+    std::for_each(mimes.begin(), mimes.end(),[&](const ClipMime& curClip)->void
+    {
+        addClip(curClip.trackId,curClip);
+    });
+
+}
+
 void TimelineWidget::setSelectedClip(const QString &clip, bool isCancel)
 {
     if (isCancel) {
@@ -666,6 +696,10 @@ bool TimelineWidget::getTrackByVerticalPos(double yPos, TrackMime &data)
     auto trackBodyHeight = getTrackCount() * TRACK_HEIGHT;
     auto curArea = getArea(RightBottom);
     auto index = (int)ceil(yPos - ((curArea.height() - trackBodyHeight) / 2)) / TRACK_HEIGHT;
+    if(index<0||index>m_timelineData.tracks.size())
+    {
+        return false;
+    }
     data = getTrackData(index);
     return !data.isDefaultData();
 }

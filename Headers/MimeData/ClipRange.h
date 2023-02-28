@@ -23,8 +23,8 @@ public:
     }
     ///由TimelineMime 获取切片范围值
     void buildFromTimelineData(QList<TrackMime> data);
-    ///一个切片的数据发生改变
-    void oneClipChanged(const ClipMime& clipData);
+    ///一个切片的数据发生改变,
+    void oneClipChanged(const ClipMime& clipData,const QString& originTrackKey="");
     ///查询某个轨道上的某个切片是否存在碰撞
     bool hasCollision(const QString& trackKey,const QString& clipKey,QList<QString>& collisionItem);
     ///查询某个轨道上某个位置是否存在切片

@@ -35,7 +35,7 @@ private:
     void Init();
     void clipDrag(int x,int y);
     void stopClipDrag();
-    void checkForCollision();
+    void checkForCollision(ClipMime mime,const QString& originTrackKey="");
 private:
     volatile bool m_isGrouped = false;
     volatile bool m_isDragMoved= false;

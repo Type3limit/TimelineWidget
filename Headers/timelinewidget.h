@@ -95,8 +95,7 @@ public:
     void setSelectedClip(const QList<ClipItem*>&clips,bool isCancel=false);
     ///获取所有被选中的切片
     QList<ClipItem*> getAllSelectedClip();
-    ///更新选中缓存
-    void updateSelectedSourceCache(const QString& clipId,ClipItem* clip);
+
     ///判断某个切片是否被选中
     bool isSelected(const QString& clipKey);
     ///切片所有被选中的切片
@@ -109,6 +108,8 @@ public:
     void removeClip(const ClipMime& clipData,bool searchWhenTrackKeyEmpty = true,bool shouldEmitSignal = true);
     ///修改切片信息
     void alterClipData(const QString& key,const QString& trackKey,const ClipMime& mime,bool searchWhenTrackKeyEmpty = true,bool shouldEmitSignal=true);
+    ///修改切片信息(一个变多个时)
+    void alterClipData(const QString& key,const QString& OriginTrackKey,const QList<ClipMime>& mimes,bool searchWhenTrackKeyEmpty = true);
     ///切片建组
     void madeClipGroup(QList<ClipMime> clips);
     ///切片解组
@@ -139,6 +140,9 @@ private:
     double percentPerUnit();
     ///通过纵向高度获取具体轨道
     bool getTrackByVerticalPos(double yPos,TrackMime& trackData);
+private:
+    ///更新选中缓存
+    void updateSelectedSourceCache(const QString& clipId,ClipItem* clip);
 private:
     ///左上单位刻度
     TickDrawingView *m_tickView = nullptr;
