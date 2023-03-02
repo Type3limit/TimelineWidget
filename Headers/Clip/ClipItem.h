@@ -10,6 +10,7 @@
 #include "MimeData/ClipMime.h"
 #include "MimeData/TrackMime.h"
 #include "ShadowClipItem.h"
+#include "ClipDragHandle.h"
 class ClipItem: public QGraphicsItem
 {
 public:
@@ -36,6 +37,7 @@ private:
     void clipDrag(int x,int y);
     void stopClipDrag();
     void checkForCollision(ClipMime mime,const QString& originTrackKey="");
+    void checkExpandHandle(const QRectF& clipRect);
 private:
     volatile bool m_isGrouped = false;
     volatile bool m_isDragMoved= false;
@@ -52,6 +54,8 @@ private:
     QRectF m_shadowRect;
     QRectF m_originRect;
     ShadowClipItem* m_shadow = nullptr;
+    ClipDragHandle* m_leftHandle = nullptr;
+    ClipDragHandle* m_rightHandle = nullptr;
     QPixmap m_image;
 
     friend class TimelineWidget;

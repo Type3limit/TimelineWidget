@@ -45,6 +45,7 @@ public slots:
     void ScrollToPos(int pos);
     void ClipChanged(const QString& trackKey,const QString& clipKey,int mode);
     void singleClipChanged(const QString& trackKey,const QString& clipKey);
+    void onCursorPosChanged(ulong pos);
 signals:
     void ScrollChanged(int pos);
 private:

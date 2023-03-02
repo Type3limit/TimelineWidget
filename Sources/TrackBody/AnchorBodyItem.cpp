@@ -52,7 +52,6 @@ void AnchorBodyItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 void AnchorBodyItem::OnTimelinePosChanged(ulong pos)
 {
     prepareGeometryChange();
-    update();
 }
 void AnchorBodyItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {

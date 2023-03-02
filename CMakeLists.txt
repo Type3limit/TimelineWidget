@@ -69,7 +69,7 @@ add_executable(TimelineWidget main.cpp
         Sources/TrackBody/TrackSelectionItem.cpp
         Headers/TrackBody/TrackSelectionItem.h
         Sources/MimeData/ClipRange.cpp
-        Headers/MimeData/ClipRange.h)
+        Headers/MimeData/ClipRange.h Sources/Clip/ClipDragHandle.cpp Headers/Clip/ClipDragHandle.h Headers/Clip/ClipDragHandle.h Headers/Clip/ClipDragHandle.h)
 
 
 target_link_libraries(TimelineWidget

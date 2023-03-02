@@ -23,11 +23,12 @@ TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     connect(TimelineInstance(), &TimelineWidget::TrackUpdated, this, &TrackBodyDrawingView::OnTrackHeadUpdate);
     connect(horizontalScrollBar(), &QScrollBar::sliderMoved, this, &TrackBodyDrawingView::ScrolledTo);
     connect(TimelineInstance(), &TimelineWidget::PositionChanged,
-            m_anchorBody, &AnchorBodyItem::OnTimelinePosChanged, Qt::ConnectionType::QueuedConnection);
+            this, &TrackBodyDrawingView::onCursorPosChanged, Qt::ConnectionType::QueuedConnection);
     connect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this,
             &TrackBodyDrawingView::ClipChanged,Qt::ConnectionType::QueuedConnection);
     connect(TimelineInstance(), &TimelineWidget::ClipUpdated, this,
             &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::AutoConnection);
+    setMouseTracking(true);
 }
 TrackBodyDrawingView::~TrackBodyDrawingView()
 {
@@ -41,8 +42,7 @@ TrackBodyDrawingView::~TrackBodyDrawingView()
 }
 void TrackBodyDrawingView::ScrolledTo(int pos)
 {
-    auto curRect = getViewPortRect();
-    update(QRect((int)curRect.x(), (int)curRect.y(), (int)curRect.width(), (int)curRect.height()));
+    update( getViewPortRect().toRect());
     emit ScrollChanged(pos);
 }
 
@@ -278,6 +278,12 @@ void TrackBodyDrawingView::emptyTracks()
         }
     });
     m_bodyItems.clear();
+}
+void TrackBodyDrawingView::onCursorPosChanged(ulong pos)
+{
+    update();
+    m_anchorBody->OnTimelinePosChanged(pos);
+
 }
 
 

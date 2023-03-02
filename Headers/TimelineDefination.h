@@ -50,6 +50,8 @@ const int WHEEL_SCALE_DELTA = 2;
 
 ///切片触发扩张变更值
 const int CLIP_SPAN_UNIT = 2;
+///触发拖拽变长的阈值
+const int CLIP_DRAG_EXPAND_LIMIT = 5;
 
 ///时间线绘制颜色
 const QColor DRAW_COLOR = QColor(160, 160, 160);
