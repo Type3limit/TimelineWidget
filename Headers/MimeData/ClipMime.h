@@ -99,6 +99,23 @@ struct ClipMime
         return (0 == (other.id.length())) && (other.trackId.length() == 0) && (other.type == SpecificType::None)
             && other.startPos == 0 && other.duration == 0;
     }
+    bool cutUp(ulong pos,ClipMime &left, ClipMime &right)
+    {
+        if(startPos>=pos||startPos+duration<=pos)
+            return false;
+
+        left = ClipMime(*this);
+        right =ClipMime(*this);
+        left.id = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
+        left.startPos = startPos;
+        left.duration = pos-left.startPos;
+
+        right.id = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
+        right.startPos = pos;
+        right.duration = duration - left.duration;
+
+        return true;
+    }
 #pragma endregion
 };
 

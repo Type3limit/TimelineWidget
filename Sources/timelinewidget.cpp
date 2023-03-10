@@ -5,7 +5,7 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_TimelineWidget.h" resolved
 
 #include "timelinewidget.h"
-#include "../Forms/ui_TimelineWidget.h"
+#include "../Forms/ui_timelinewidget.h"
 #include "Tick/TickDrawingView.h"
 #include "Ruler/RulerDrawingView.h"
 #include "TrackHead/TrackHeadDrawingView.h"

@@ -27,5 +27,5 @@ void ClipDragHandle::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     QPainterPath path;
     painter->setRenderHint(QPainter::RenderHint::Antialiasing);
     path.addRoundedRect(m_drawingRect,2,2);
-    painter->fillPath(path,QBrush(QColor(255,0,0,255)));
+    painter->fillPath(path,QBrush(QColor(255,0,0,0)));
 }

@@ -102,7 +102,7 @@ void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         if ((xIndex + width) - curX < 20)
             return;
         if (shouldDrawText) {
-        painter->drawText(curX, (int)yIndex, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
+        painter->drawText(curX, (int)yIndex, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, m_mimeKey);
         //painter->drawText(curX, (int)yIndex + 10, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
         //painter->drawText(curX, (int)yIndex + 20, 20, TRACK_HEIGHT, Qt::AlignHCenter | Qt::AlignVCenter, "测试");
         }
@@ -229,6 +229,7 @@ void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 }
 void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    auto curMime = getMimeData(m_mimeKey,true);
     if (m_isMouseDrag) {
         event->accept();
         m_isMouseDrag = false;
@@ -237,7 +238,6 @@ void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     else if (m_isLeftExpand) {
         this->scene()->removeItem(m_shadow);
         double deltaX = timeline()->percentPerUnit()*(m_shadowRect.x()-boundingRect().x());
-        auto curMime = getMimeData(m_mimeKey,true);
         auto curS = (int64_t)curMime.startPos + (int64_t)(deltaX);
         auto curD = (int64_t)curMime.duration - (int64_t)(deltaX);
         curMime.startPos=curS<=0?0:curS;
@@ -251,7 +251,6 @@ void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
         this->scene()->removeItem(m_shadow);
         double deltaX = timeline()->percentPerUnit()*((m_shadowRect.x()+m_shadowRect.width())
             -(boundingRect().width()+boundingRect().x()));
-        auto curMime = getMimeData(m_mimeKey,true);
         auto curD = (int64_t)curMime.duration + (int64_t)(deltaX);
         curMime.duration = curD<0?1:curD;
         timeline()->alterClipData(curMime.id,curMime.trackId,curMime);
@@ -346,7 +345,7 @@ void ClipItem::stopClipDrag()
                             timeline()->maxDuration() : curX + curFrameMoved);
         TrackMime readyTrackData;
         // using center position to determine which track to insert
-        timeline()->getTrackByVerticalPos((m_shadowRect.y() + TRACK_HEIGHT / 2), readyTrackData);
+        timeline()->getTrackByVerticalPos((m_shadowRect.y() + TRACK_HEIGHT / 2.0), readyTrackData);
         bool isChangeTrack = false;
         auto originTrackKey = curMime.trackId;
         if (!readyTrackData.isDefaultData()) {
@@ -367,14 +366,7 @@ void ClipItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 }
 void ClipItem::forceUpdate()
 {
-    if(m_leftHandle->isAddToScene())
-    {
-        m_leftHandle->forceUpdate();
-    }
-    if(m_rightHandle->isAddToScene())
-    {
-        m_rightHandle->forceUpdate();
-    }
+    checkExpandHandle(boundingRect());
     prepareGeometryChange();
     update();
 }
@@ -409,14 +401,33 @@ void ClipItem::checkForCollision(ClipMime curMime, const QString &originTrackKey
     {
         return l.startPos < r.startPos;
     });
-    //TODO:for head ,depart it.
 
+    auto collisionItem =  ExtensionMethods::SourcesExtension<ClipMime>::firstOf(headClips,[&collisionItems](const ClipMime& curClip)->bool
+    {
+        return collisionItems.contains(curClip.id);
+    },ClipMime());
+    ulong diffDelta = 0;
+   if(!collisionItem.isDefaultData())
+   {
+       //for head ,depart it,get the diffDelta with last clip.
+       ClipMime left,right;
+       if(collisionItem.cutUp(curMime.startPos,left,right))
+       {
+           right.startPos = left.startPos+left.duration + curMime.duration;
+//           qDebug()<<"With left:["<<left.startPos<<"]"<<"["<<left.duration<<
+//           "]With right:["<<right.startPos<<"]["<<right.duration<<"]";
+           timeline()->removeClip(collisionItem);
+           timeline()->addClip(curMime.trackId,left);
+           timeline()->addClip(curMime.trackId,right);
+           diffDelta = right.duration;
+       }
+   }
     //for tail ,if front space is not enough,move tail clips.
     if (tailClips.count() > 0 && tailClips[0].startPos < curMime.startPos + curMime.duration) {
         auto tailDiff = (curMime.startPos + curMime.duration) - tailClips[0].startPos;
         for (int i = 0; i < tailClips.count(); i++) {
 
-            tailClips[i].startPos += tailDiff;
+            tailClips[i].startPos += (tailDiff+diffDelta);
             timeline()->alterClipData(tailClips[i].id, tailClips[i].trackId, tailClips[i]);
         }
     }
@@ -453,5 +464,14 @@ void ClipItem::checkExpandHandle(const QRectF& clipRect)
             scene()->removeItem(m_rightHandle);
         }
     }
+    if(m_leftHandle)
+    {
+        m_leftHandle->forceUpdate();
+    }
+    if(m_rightHandle)
+    {
+        m_rightHandle->forceUpdate();
+    }
 }
+
 
