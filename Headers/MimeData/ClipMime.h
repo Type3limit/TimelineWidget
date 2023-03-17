@@ -18,6 +18,8 @@ struct ClipMime
     ulong startPos = 0;
     ///clip duration
     ulong duration = 0;
+    ///clip maxDuration
+    ulong maxDuration=INT32_MAX;
     ///clip type
     SpecificType type = SpecificType::None;
     ///clip groups id
@@ -108,14 +110,15 @@ struct ClipMime
         right =ClipMime(*this);
         left.id = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
         left.startPos = startPos;
-        left.duration = pos-left.startPos;
+        left.duration = ((int64_t)pos-(int64_t)left.startPos)<1?1:((int64_t)pos-(int64_t)left.startPos);
 
         right.id = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
         right.startPos = pos;
-        right.duration = duration - left.duration;
+        right.duration = ((int64_t)duration - (int64_t)left.duration)<1?1:((int64_t)duration - (int64_t)left.duration);
 
         return true;
     }
+    ulong endPosition()const { return startPos+duration;}
 #pragma endregion
 };
 

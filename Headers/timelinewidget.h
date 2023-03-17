@@ -47,7 +47,7 @@ public:
     ///获取控件具体位置宽高
     QRectF getArea(Area pos) const;
     ///获取可视区范围矩形
-    QRectF getViewPort(Area pos)const;
+    QRectF getViewPort(Area pos) const;
     ///强制某一个区域更新
     void forceUpdate(Area pos);
     ///获取时间线源数据
@@ -63,7 +63,7 @@ public:
     ///设置时间单位尺
     void setFrameTick(ulong curData, bool shouldEmitSignal = true);
     ///获取最大时间单位尺
-    ulong maxFrameTick()const;
+    ulong maxFrameTick() const;
     ///获取时间线最大长度（绘制区终点）
     ulong maxDuration() const;
     ///设置时间线最大长度（绘制区终点）
@@ -82,51 +82,60 @@ public:
     ///获取指定位置的Track(逻辑index)
     TrackMime getTrackData(int index);
     ///添加轨道(-1 to tail)
-    bool addTrack(const QString& key, int trackType, int index);
+    bool addTrack(const QString &key, int trackType, int index);
     ///删除轨道
-    void removeTrack(const QString& key);
+    void removeTrack(const QString &key);
 #pragma endregion
 #pragma region Clip option
     ///设置被选中的单个切片，如有多个，会替换为当前设置切片
-    void setSelectedClip(const QString& clips,bool isCancel=false);
+    void setSelectedClip(const QString &clips, bool isCancel = false);
     ///设置多个选中切片，取已有选中项和传入选中项的并集
-    void setSelectedClip(const QList<QString>&clips,bool isCancel=false);
+    void setSelectedClip(const QList<QString> &clips, bool isCancel = false);
     ///设置多个选中切片，直接使用传入项
-    void setSelectedClip(const QList<ClipItem*>&clips,bool isCancel=false);
-    ///获取所有被选中的切片
-    QList<ClipItem*> getAllSelectedClip();
+    void setSelectedClip(const QList<ClipItem *> &clips, bool isCancel = false);
+    ///获取所有被选中的切片实际对象
+    QList<ClipItem *> getAllSelectedClip();
 
     ///判断某个切片是否被选中
-    bool isSelected(const QString& clipKey);
+    bool isSelected(const QString &clipKey);
     ///切片所有被选中的切片
-    void setClipMovement(int xDiff,int yDiff);
+    void setClipMovement(int xDiff, int yDiff);
     ///添加切片到指定轨道
-    void addClip(const QString& trackKey,const ClipMime& mime,bool shouldEmitSignal = true);
+    void addClip(const QString &trackKey, const ClipMime &mime, bool shouldEmitSignal = true);
     ///添加切片到指定轨道
-    void addClip(int index,ClipMime& mime,bool shouldEmitSignal = true);
+    void addClip(int index, ClipMime &mime, bool shouldEmitSignal = true);
     ///去除特定切片
-    void removeClip(const ClipMime& clipData,bool searchWhenTrackKeyEmpty = true,bool shouldEmitSignal = true);
+    void removeClip(const ClipMime &clipData, bool searchWhenTrackKeyEmpty = true, bool shouldEmitSignal = true);
     ///修改切片信息
-    void alterClipData(const QString& key,const QString& trackKey,const ClipMime& mime,bool searchWhenTrackKeyEmpty = true,bool shouldEmitSignal=true);
+    void alterClipData(const QString &key,
+                       const QString &trackKey,
+                       const ClipMime &mime,
+                       bool searchWhenTrackKeyEmpty = true,
+                       bool shouldEmitSignal = true);
     ///修改切片信息(一个变多个时)
-    void alterClipData(const QString& key,const QString& OriginTrackKey,const QList<ClipMime>& mimes,bool searchWhenTrackKeyEmpty = true);
+    void alterClipData(const QString &key,
+                       const QString &OriginTrackKey,
+                       const QList<ClipMime> &mimes,
+                       bool searchWhenTrackKeyEmpty = true);
     ///切片建组
     void madeClipGroup(QList<ClipMime> clips);
     ///切片解组
-    void rescindClipGroup(const QString& groupKey);
+    void rescindClipGroup(const QString &groupKey);
 
 private:
-    void clipMoved(int x, int y ,bool isOver);
-
+    ///移动选中的切片
+    void clipMoved(int x, int y, bool isOver);
+    ///由ClipItem调用的，标识当前的多个移动切片与某一个未被选中切片之前发生碰撞。
+    void multiClipCollied(const QString& senderKey,const QString& originTrackKey);
 #pragma  endregion
 #pragma endregion
 
 #pragma region resumeData
 public:
     ///由json字符串恢复时间线数据
-    bool buildFromJson(const QString& data);
+    bool buildFromJson(const QString &data);
     ///由json文件恢复时间线数据
-    bool buildFromJsonFile(const QString& filePath);
+    bool buildFromJsonFile(const QString &filePath);
 #pragma endregion
 protected:
     void wheelEvent(QWheelEvent *event) override;
@@ -139,10 +148,10 @@ private:
     ///单帧宽度
     double percentPerUnit();
     ///通过纵向高度获取具体轨道
-    bool getTrackByVerticalPos(double yPos,TrackMime& trackData);
+    bool getTrackByVerticalPos(double yPos, TrackMime &trackData);
 private:
     ///更新选中缓存
-    void updateSelectedSourceCache(const QString& clipId,ClipItem* clip);
+    void updateSelectedSourceCache(const QString &clipId, ClipItem *clip);
 private:
     ///左上单位刻度
     TickDrawingView *m_tickView = nullptr;
@@ -159,16 +168,16 @@ private:
 
 private:
     ///被选中的所有切片，仅记录key
-    QList<QString>m_selectedClips;
+    QList<QString> m_selectedClips;
     ///被选中切片的缓存
-    QMap<QString,ClipItem*>m_selectedClipsCache;
+    QMap<QString, ClipItem *> m_selectedClipsCache;
     ///主要的时间线数据
     TimelineMime m_timelineData;
-    ///切片范围数据
-    ClipRange m_clipRange;
     ///同步锁
     QMutex m_sync;
     QWaitCondition m_cond;
+    ///标识是否在移动多个切片时新增了轨道
+    volatile bool m_isMultiAddTrack = false;
 signals:
     ///当时间线当前位置发生改变时发出
     void PositionChanged(ulong pos);
@@ -177,11 +186,11 @@ signals:
     ///当轨道数据发生改变时发出对应轨道信息
     void TrackUpdated(const QString &key);
     ///对应轨道的切片数量变更事件,-1删除 1增加
-    void TrackClipChanged(const QString & trackKey,const QString& clipKey,int mode);
+    void TrackClipChanged(const QString &trackKey, const QString &clipKey, int mode);
     ///切片数据发生改变时发出
-    void ClipUpdated(const QString& trackKey,const QString& clipKey);
+    void ClipUpdated(const QString &trackKey, const QString &clipKey);
     ///切片成/解组时发出,建议由clip订阅
-    void ClipToGroup(bool isGrouped ,const QString& groupKey,const QString& clipKey);
+    void ClipToGroup(bool isGrouped, const QString &groupKey, const QString &clipKey);
 
 };
 

@@ -84,6 +84,7 @@ void TrackBodyItem::addClipItem(const QString &itemKey)
     auto curItem = new ClipItem(itemKey);
     curItem->insertToTrack(m_mimeKey);
     m_clips.insert(itemKey, curItem);
+    curItem->m_isRemoved = false;
     this->scene()->addItem(curItem);
     TimelineInstance()->updateSelectedSourceCache(itemKey,curItem);
 }
@@ -93,6 +94,7 @@ void TrackBodyItem::removeClipItem(const QString &itemKey)
         return;
     auto curItem = m_clips[itemKey];
     curItem->removeFromTrack();
+    curItem->m_isRemoved = true;
     m_clips.remove(itemKey);
     this->scene()->removeItem(curItem);
     if(m_removeLists.count()>=2)

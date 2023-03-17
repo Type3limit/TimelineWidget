@@ -114,14 +114,12 @@ public:
         tracks.emplace_back(clipData);
     }
     ///删除轨道,返回被删除的轨道
-    TrackMime removeTrack(const QString &key)
+    void removeTrack(const QString &key)
     {
         std::vector<TrackMime>::iterator itr;
         if (getTrackWithItr(key, itr)) {
             tracks.erase(itr);
-            return *itr;
         }
-        return {};
     }
     ///拿到指定轨道信息
     bool getTrack(TrackMime &data, const QString &key)

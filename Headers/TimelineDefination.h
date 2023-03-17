@@ -73,10 +73,18 @@ const QColor STICKER_CLIP_COLOR = QColor(86,105,243);
 ///类别
 enum SpecificType
 {
+    //无
     None = 0,
+    //特技
     Effect,
+    //贴纸
     Sticker,
-    Subtitle
+    //字幕
+    Subtitle,
+    //图表
+    PictureForm,
+    //蒙版
+    Mask,
 };
 
 #pragma region function

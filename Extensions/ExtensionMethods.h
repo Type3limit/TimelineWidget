@@ -180,11 +180,11 @@ public:
     }
     ///in QList,take a Res type result for each finderType
     template<typename Res>
-    static inline QList<Res> select(const QList<finderType> &sources, std::function<Res(finderType)> selectFunc)
+    static inline QList<Res> select(const QList<finderType> &sources, std::function<Res(const finderType&)> selectFunc)
     {
         QList<Res> res;
         for (auto i: sources) {
-            res.push_back(selectFunc);
+            res.push_back(selectFunc(i));
         }
         return res;
     }
@@ -211,6 +211,43 @@ public:
             else
                 notMatchResult.push_back(item);
         });
+    }
+    //in QList ,select items by different match function,one item may included by multi collections.
+    static inline QList<QList<finderType>> groupSelect(const QList<finderType>&sources,QList<std::function<bool(finderType)>>matchFunctions)
+    {
+        QList<QList<finderType>> result;
+        for(int i=0;i<matchFunctions.count();i++)
+        {
+            result.push_back(QList<finderType>());
+        }
+        std::for_each(sources.begin(), sources.end(),[&](const finderType& curItem)->void
+        {
+            for(int i = 0;i<matchFunctions.count();i++)
+            {
+                if(matchFunctions[i](curItem))
+                {
+                    result[i].push_back(curItem);
+                }
+            }
+        });
+        return result;
+    }
+
+    //in QList,select items by function which can get a field by pass item
+    template<typename para>
+    static inline  QMap<para,QList<finderType>> groupBy(const QList<finderType>&sources,std::function<para(finderType)>selectFunction)
+    {
+        QMap<para,QList<finderType>> source;
+        std::for_each(sources.begin(), sources.end(),[&](const finderType& curItem)->void
+        {
+            auto curPara = selectFunction(curItem);
+            if(!source.contains(curPara))
+            {
+                source.insert(curPara,QList<finderType>());
+            }
+            source[curPara].push_back(curItem);
+        });
+        return source;
     }
 };
 
