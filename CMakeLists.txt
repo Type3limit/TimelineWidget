@@ -7,10 +7,10 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 include_directories(
-        ${PROJECT_SOURCE_DIR}/Forms
-        ${PROJECT_SOURCE_DIR}/Headers
-        ${PROJECT_SOURCE_DIR}/Sources
-        ${PROJECT_SOURCE_DIR}/Extensions
+        ${PROJECT_SOURCE_DIR}/forms
+        ${PROJECT_SOURCE_DIR}/headers
+        ${PROJECT_SOURCE_DIR}/sources
+        ${PROJECT_SOURCE_DIR}/extensions
 )
 find_package(Qt5 COMPONENTS
         Core
@@ -22,54 +22,54 @@ add_executable(TimelineWidget main.cpp
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
-        Sources/timelinewidget.cpp
-        Headers/timelinewidget.h
-        Forms/timelinewidget.ui
-        Sources/Tick/tickdrawingview.cpp
-        Headers/Tick/tickdrawingview.h
-        Extensions/extensionmethods.h
-        Sources/Ruler/rulerdrawingview.cpp
-        Headers/Ruler/rulerdrawingview.h
-        Sources/TrackBody/trackbodydrawingview.cpp
-        Headers/TrackBody/trackbodydrawingview.h
-        Sources/TrackHead/trackheaddrawingview.cpp
-        Headers/TrackHead/trackheaddrawingview.h
-        Headers/timelinedefination.h
-        Headers/selfcontainedscenesview.h
-        Sources/Tick/tickitem.cpp
-        Headers/Tick/tickitem.h
-        Sources/Ruler/ruleritem.cpp
-        Headers/Ruler/ruleritem.h
-        Sources/Ruler/anchorheaditem.cpp
-        Headers/Ruler/anchorheaditem.h
-        Sources/TrackBody/anchorbodyitem.cpp
-        Headers/TrackBody/anchorbodyitem.h
-        Sources/TrackHead/trackheaditem.cpp
-        Headers/TrackHead/trackheaditem.h
-        Sources/TrackBody/trackbodyitem.cpp
-        Headers/TrackBody/trackbodyitem.h
-        Headers/MimeData/trackmime.h
-        Extensions/detail/itoa.h
-        Extensions/detail/stringstream.h
-        Extensions/detail/traits.h
-        Extensions/json.h
-        Extensions/reflection.h
-        Extensions/xml.h
-        Extensions/jsonserialization.h
-        Extensions/xmlserialization.h
-        Extensions/jsonserialization.h
-        Extensions/xmlserialization.h
-        Extensions/intervalwatcher.h
-        Headers/MimeData/clipmime.h
-        Sources/Clip/clipitem.cpp
-        Headers/Clip/clipitem.h
-        Headers/MimeData/timelinemime.h
-        Sources/Clip/shadowclipitem.cpp
-        Headers/Clip/shadowclipitem.h
-        Sources/TrackBody/trackselectionitem.cpp
-        Headers/TrackBody/trackselectionitem.h
-        Sources/MimeData/cliprange.cpp
-        Headers/MimeData/cliprange.h Sources/Clip/clipdraghandle.cpp Headers/Clip/clipdraghandle.h Headers/Clip/clipdraghandle.h Headers/Clip/clipdraghandle.h)
+        sources/timelinewidget.cpp
+        headers/timelinewidget.h
+        forms/timelinewidget.ui
+        sources/tick/tickdrawingview.cpp
+        headers/tick/tickdrawingview.h
+        extensions/extensionmethods.h
+        sources/ruler/rulerdrawingview.cpp
+        headers/ruler/rulerdrawingview.h
+        sources/trackbody/trackbodydrawingview.cpp
+        headers/trackbody/trackbodydrawingview.h
+        sources/trackhead/trackheaddrawingview.cpp
+        headers/trackhead/trackheaddrawingview.h
+        headers/timelinedefination.h
+        headers/selfcontainedscenesview.h
+        sources/tick/tickitem.cpp
+        headers/tick/tickitem.h
+        sources/ruler/ruleritem.cpp
+        headers/ruler/ruleritem.h
+        sources/ruler/anchorheaditem.cpp
+        headers/ruler/anchorheaditem.h
+        sources/trackbody/anchorbodyitem.cpp
+        headers/trackbody/anchorbodyitem.h
+        sources/trackhead/trackheaditem.cpp
+        headers/trackhead/trackheaditem.h
+        sources/trackbody/trackbodyitem.cpp
+        headers/trackbody/trackbodyitem.h
+        headers/mimedata/trackmime.h
+        extensions/detail/itoa.h
+        extensions/detail/stringstream.h
+        extensions/detail/traits.h
+        extensions/json.h
+        extensions/reflection.h
+        extensions/xml.h
+        extensions/jsonserialization.h
+        extensions/xmlserialization.h
+        extensions/jsonserialization.h
+        extensions/xmlserialization.h
+        extensions/intervalwatcher.h
+        headers/mimedata/clipmime.h
+        sources/clip/clipitem.cpp
+        headers/clip/clipitem.h
+        headers/mimedata/timelinemime.h
+        sources/clip/shadowclipitem.cpp
+        headers/clip/shadowclipitem.h
+        sources/trackbody/trackselectionitem.cpp
+        headers/trackbody/trackselectionitem.h
+        sources/mimedata/cliprange.cpp
+        headers/mimedata/cliprange.h sources/clip/clipdraghandle.cpp headers/clip/clipdraghandle.h headers/clip/clipdraghandle.h headers/clip/clipdraghandle.h)
 
 
 target_link_libraries(TimelineWidget
