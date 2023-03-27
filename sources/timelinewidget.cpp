@@ -752,14 +752,14 @@ void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &mo
 
 
     //get all selected mime data
-    auto selectedClips = ExtensionMethods::SourcesExtension<QString>::select<clipmime>(m_selectedClips,
+    auto selectedClips = extensionMethods::sourcesExtension<QString>::select<clipmime>(m_selectedClips,
                                                                                        [&](const QString &clipKey) -> clipmime
                                                                                        {
                                                                                            return m_timelineData
                                                                                                .getClip(clipKey, "");
                                                                                        });
     //group clips by track key
-    auto trackClips = ExtensionMethods::SourcesExtension<clipmime>::groupBy<QString>(selectedClips,
+    auto trackClips = extensionMethods::sourcesExtension<clipmime>::groupBy<QString>(selectedClips,
                                                                                      [&](const clipmime &curClip) -> QString
                                                                                      {
                                                                                          return curClip.trackId;
@@ -813,7 +813,7 @@ void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &mo
         trackmime clipOriginTrack = TrackData[curKey];
         for (const auto &curMime: curMimes) {
             auto movedMime = m_selectedClipsCache[curMime.id]->stopClipDrag(true);
-            auto trackInfo = ExtensionMethods::SourcesExtension<clipmime>
+            auto trackInfo = extensionMethods::sourcesExtension<clipmime>
             ::whichHasValue<trackmime>(movements, movedMime,
                                        [](const clipmime &l, const clipmime &r)
                                        { return l.id == r.id; });
@@ -833,12 +833,12 @@ void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &mo
 
 bool timelinewidget::buildFromJsonFile(const QString &filePath)
 {
-    return buildFromJson(ExtensionMethods::QStringExtension::readAllText(filePath));
+    return buildFromJson(extensionMethods::QStringExtension::readAllText(filePath));
 }
 bool timelinewidget::buildFromJson(const QString &data)
 {
 
-    if (ExtensionMethods::QStringExtension::isNullOrEmpty(data))
+    if (extensionMethods::QStringExtension::isNullOrEmpty(data))
         return false;
     intervalwatcher iw;
     iw.start();

@@ -99,7 +99,7 @@ void rulerdrawingview::mousePressEvent(QMouseEvent *event)
 {
     auto curItems = items(event->pos());
     //qDebug() << curItems;
-    if (ExtensionMethods::SourcesExtension<QGraphicsItem *>::firstOf(curItems, [&](auto obj) -> bool{
+    if (extensionMethods::sourcesExtension<QGraphicsItem *>::firstOf(curItems, [&](auto obj) -> bool{
         return dynamic_cast<anchorheaditem *>(obj) != nullptr;}, nullptr) == nullptr) {
         auto deltaOfX = (event->x()+horizontalScrollBar()->value()) / (double)m_nWidth;
 //        qDebug()<<event->x()<<":"<<horizontalScrollBar()->value();

@@ -11,13 +11,13 @@
 #include <QDir>
 #include <functional>
 #include <type_traits>
-namespace ExtensionMethods
+namespace extensionMethods
 {
 ///
-/// The SourcesExtension class , implemented a bunch of methods to enhance operations with sets
+/// The sourcesExtension class , implemented a bunch of methods to enhance operations with sets
 ///
 template<typename finderType>
-class SourcesExtension
+class sourcesExtension
 {
 public:
     ///get the first element that matched with condition,need pass the total count of array,if there has no matched one,return defaultValue
@@ -394,7 +394,6 @@ constexpr bool CHECK_POINTER()
 {
     return GLOBAL_POINTER<T> != nullptr;
 }
-
 template<typename T>
 ///get the pointer
 constexpr T *GET_POINTER()

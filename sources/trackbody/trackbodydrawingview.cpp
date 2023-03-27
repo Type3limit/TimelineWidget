@@ -11,7 +11,7 @@
 #include <QtMath>
 #define TimelineInstance() (GET_POINTER<timelinewidget>())
 
-typedef ExtensionMethods::SourcesExtension<QGraphicsItem *> itemsEx;
+typedef extensionMethods::sourcesExtension<QGraphicsItem *> itemsEx;
 
 trackbodydrawingview::trackbodydrawingview(QWidget *parent)
     : SelfContainedSceneView(parent)
@@ -40,7 +40,7 @@ trackbodydrawingview::trackbodydrawingview(QWidget *parent)
 trackbodydrawingview::~trackbodydrawingview()
 {
     SAFE_DELETE(m_anchorBody)
-    ExtensionMethods::SourcesExtension<QString>::eachBy(m_bodyItems.keys(), [&](const QString &key) -> void
+    extensionMethods::sourcesExtension<QString>::eachBy(m_bodyItems.keys(), [&](const QString &key) -> void
     {
         auto curItem = m_bodyItems[key];
         SAFE_DELETE(curItem)

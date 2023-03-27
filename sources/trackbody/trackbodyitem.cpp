@@ -21,7 +21,7 @@ trackbodyitem::trackbodyitem(const trackmime &curData, QGraphicsItem *parent)
 
 trackbodyitem::~trackbodyitem()
 {
-    ExtensionMethods::SourcesExtension<QString>::eachBy(m_clips.keys(), [&](const QString &key) -> void
+    extensionMethods::sourcesExtension<QString>::eachBy(m_clips.keys(), [&](const QString &key) -> void
     {
         auto curItem = m_clips[key];
         SAFE_DELETE(curItem);

@@ -23,7 +23,7 @@ MainWindow::~MainWindow()
     sstream ss;
     TO_JSON( ss,ui->widget->getTimeMime());
     //qDebug()<<ss.str().c_str();
-    ExtensionMethods::QStringExtension::writeAllText("./test.json",QString::fromStdString(ss.str()));
+    extensionMethods::QStringExtension::writeAllText("./test.json", QString::fromStdString(ss.str()));
     iw.stop();
     qDebug()<<iw.milliSecond()<<"ms after timeline serialize";
     delete ui;
@@ -38,7 +38,7 @@ void MainWindow::showEvent(QShowEvent *event)
     intervalwatcher iw;
     iw.start();
     isFirstShow = false;
-    if(ExtensionMethods::QStringExtension::isFileExist("./test.json")&&
+    if(extensionMethods::QStringExtension::isFileExist("./test.json")&&
         ui->widget->buildFromJsonFile("./test.json"))
     {
         iw.stop();

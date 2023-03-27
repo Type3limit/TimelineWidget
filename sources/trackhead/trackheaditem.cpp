@@ -20,7 +20,7 @@ trackheaditem::trackheaditem(const trackmime &curData, QGraphicsItem *parent)
 
 QRectF trackheaditem::boundingRect() const
 {
-    if(ExtensionMethods::QStringExtension::isNullOrEmpty(m_mimeKey))
+    if(extensionMethods::QStringExtension::isNullOrEmpty(m_mimeKey))
         return {0,0,0,0};
     auto trackBodyHeight = TimelineInstance()->getTrackCount()* TRACK_HEIGHT;
     auto mime = getMimeData();

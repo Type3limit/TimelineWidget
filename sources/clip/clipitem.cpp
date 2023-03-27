@@ -440,7 +440,7 @@ bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKe
     auto collisionClips = trackData.getClips([](const clipmime &curItem) -> bool
                                              { return !(timeline()->isSelected(curItem.id)); });
     QList<clipmime> headClips, tailClips;
-    ExtensionMethods::SourcesExtension<clipmime>::classification(collisionClips,
+    extensionMethods::sourcesExtension<clipmime>::classification(collisionClips,
                                                                  [&curMime](const clipmime &item) -> bool
                                                                  {
                                                                      return item.startPos <= curMime.startPos;
@@ -469,7 +469,7 @@ bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKe
     else//single clip
     {
         //for head ,depart it,get the diffDelta with last clip.
-        auto collisionItem = ExtensionMethods::SourcesExtension<clipmime>::
+        auto collisionItem = extensionMethods::sourcesExtension<clipmime>::
         lastOf(headClips,
                [&collisionItems](const clipmime &curClip) -> bool
                {
@@ -490,10 +490,10 @@ bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKe
 
         //for tail ,if front space is not enough,move tail clips.
         if (tailClips.count() > 0 && tailClips[0].startPos < curMime.startPos + curMime.duration) {
-            auto tailDiff = (curMime.startPos + curMime.duration) - tailClips[0].startPos;
+//            auto tailDiff = (curMime.startPos + curMime.duration) - tailClips[0].startPos;
             for (int i = 0; i < tailClips.count(); i++) {
 
-                tailClips[i].startPos += (tailDiff + diffDelta);
+                tailClips[i].startPos += (curMime.duration + diffDelta);
                 timeline()->alterClipData(tailClips[i].id, tailClips[i].trackId, tailClips[i]);
             }
         }
@@ -543,7 +543,7 @@ bool clipitem::preCheckForCollision(clipmime& mime, trackmime &targetTrack)
     curMime.startPos = getStartPosAfterDragMove(curMime);
     bool isChangeTrack = false;
     auto originTrackKey = curMime.trackId;
-    auto currentCollisionItems = ExtensionMethods::SourcesExtension<QGraphicsItem*>::where(m_shadow->collidingItems(),[&](QGraphicsItem* curItem)->bool
+    auto currentCollisionItems = extensionMethods::sourcesExtension<QGraphicsItem*>::where(m_shadow->collidingItems(), [&](QGraphicsItem* curItem)->bool
     {
         auto clipItem = dynamic_cast<clipitem*>(curItem);
         if(clipItem==nullptr)
