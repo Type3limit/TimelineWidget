@@ -30,13 +30,13 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="TimelineWidget" name="widget" native="true"/>
+    <widget class="timelinewidget" name="widget" native="true"/>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>TimelineWidget</class>
+   <class>timelinewidget</class>
    <extends>QWidget</extends>
    <header>timelinewidget.h</header>
   </customwidget>

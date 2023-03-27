@@ -14,7 +14,7 @@
 
 #include "detail/itoa.h"
 #include "detail/traits.h"
-#include "detail/string_stream.h"
+#include "detail/stringstream.h"
 
 namespace iguana::detail
 {

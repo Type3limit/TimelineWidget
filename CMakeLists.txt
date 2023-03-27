@@ -25,51 +25,51 @@ add_executable(TimelineWidget main.cpp
         Sources/timelinewidget.cpp
         Headers/timelinewidget.h
         Forms/timelinewidget.ui
-        Sources/Tick/TickDrawingView.cpp
-        Headers/Tick/TickDrawingView.h
-        Extensions/ExtensionMethods.h
-        Sources/Ruler/RulerDrawingView.cpp
-        Headers/Ruler/RulerDrawingView.h
-        Sources/TrackBody/TrackBodyDrawingView.cpp
-        Headers/TrackBody/TrackBodyDrawingView.h
-        Sources/TrackHead/TrackHeadDrawingView.cpp
-        Headers/TrackHead/TrackHeadDrawingView.h
-        Headers/TimelineDefination.h
-        Headers/SelfContainedScenesView.h
-        Sources/Tick/TickItem.cpp
-        Headers/Tick/TickItem.h
-        Sources/Ruler/RulerItem.cpp
-        Headers/Ruler/RulerItem.h
-        Sources/Ruler/AnchorHeadItem.cpp
-        Headers/Ruler/AnchorHeadItem.h
-        Sources/TrackBody/AnchorBodyItem.cpp
-        Headers/TrackBody/AnchorBodyItem.h
-        Sources/TrackHead/TrackHeadItem.cpp
-        Headers/TrackHead/TrackHeadItem.h
-        Sources/TrackBody/TrackBodyItem.cpp
-        Headers/TrackBody/TrackBodyItem.h
-        Headers/MimeData/TrackMime.h
+        Sources/Tick/tickdrawingview.cpp
+        Headers/Tick/tickdrawingview.h
+        Extensions/extensionmethods.h
+        Sources/Ruler/rulerdrawingview.cpp
+        Headers/Ruler/rulerdrawingview.h
+        Sources/TrackBody/trackbodydrawingview.cpp
+        Headers/TrackBody/trackbodydrawingview.h
+        Sources/TrackHead/trackheaddrawingview.cpp
+        Headers/TrackHead/trackheaddrawingview.h
+        Headers/timelinedefination.h
+        Headers/selfcontainedscenesview.h
+        Sources/Tick/tickitem.cpp
+        Headers/Tick/tickitem.h
+        Sources/Ruler/ruleritem.cpp
+        Headers/Ruler/ruleritem.h
+        Sources/Ruler/anchorheaditem.cpp
+        Headers/Ruler/anchorheaditem.h
+        Sources/TrackBody/anchorbodyitem.cpp
+        Headers/TrackBody/anchorbodyitem.h
+        Sources/TrackHead/trackheaditem.cpp
+        Headers/TrackHead/trackheaditem.h
+        Sources/TrackBody/trackbodyitem.cpp
+        Headers/TrackBody/trackbodyitem.h
+        Headers/MimeData/trackmime.h
         Extensions/detail/itoa.h
-        Extensions/detail/string_stream.h
+        Extensions/detail/stringstream.h
         Extensions/detail/traits.h
         Extensions/json.h
         Extensions/reflection.h
         Extensions/xml.h
-        Extensions/JsonSerialization.h
-        Extensions/XmlSerialization.h
-        Extensions/JsonSerialization.h
-        Extensions/XmlSerialization.h
-        Extensions/IntervalWatcher.h
-        Headers/MimeData/ClipMime.h
-        Sources/Clip/ClipItem.cpp
-        Headers/Clip/ClipItem.h
-        Headers/MimeData/TimelineMime.h
-        Sources/Clip/ShadowClipItem.cpp
-        Headers/Clip/ShadowClipItem.h
-        Sources/TrackBody/TrackSelectionItem.cpp
-        Headers/TrackBody/TrackSelectionItem.h
-        Sources/MimeData/ClipRange.cpp
-        Headers/MimeData/ClipRange.h Sources/Clip/ClipDragHandle.cpp Headers/Clip/ClipDragHandle.h Headers/Clip/ClipDragHandle.h Headers/Clip/ClipDragHandle.h)
+        Extensions/jsonserialization.h
+        Extensions/xmlserialization.h
+        Extensions/jsonserialization.h
+        Extensions/xmlserialization.h
+        Extensions/intervalwatcher.h
+        Headers/MimeData/clipmime.h
+        Sources/Clip/clipitem.cpp
+        Headers/Clip/clipitem.h
+        Headers/MimeData/timelinemime.h
+        Sources/Clip/shadowclipitem.cpp
+        Headers/Clip/shadowclipitem.h
+        Sources/TrackBody/trackselectionitem.cpp
+        Headers/TrackBody/trackselectionitem.h
+        Sources/MimeData/cliprange.cpp
+        Headers/MimeData/cliprange.h Sources/Clip/clipdraghandle.cpp Headers/Clip/clipdraghandle.h Headers/Clip/clipdraghandle.h Headers/Clip/clipdraghandle.h)
 
 
 target_link_libraries(TimelineWidget

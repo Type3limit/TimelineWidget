@@ -6,7 +6,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "IntervalWatcher.h"
+#include "intervalwatcher.h"
 
 MainWindow::MainWindow(QWidget *parent)
     :
@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    IntervalWatcher iw;
+    intervalwatcher iw;
     iw.start();
     sstream ss;
     TO_JSON( ss,ui->widget->getTimeMime());
@@ -35,7 +35,7 @@ void MainWindow::showEvent(QShowEvent *event)
     //for test ,not necessary
     if(!isFirstShow)
         return;
-    IntervalWatcher iw;
+    intervalwatcher iw;
     iw.start();
     isFirstShow = false;
     if(ExtensionMethods::QStringExtension::isFileExist("./test.json")&&
@@ -58,7 +58,7 @@ void MainWindow::showEvent(QShowEvent *event)
     {
         for(int j = 0;j<3;j++)
         {
-            ClipMime clip(QUuid::createUuid().toString().remove("{").remove("}").remove("-"),ids[j%3],(ulong)i*1200+j*100,(ulong)1200,(static_cast<SpecificType>(i%3+1)));
+            clipmime clip(QUuid::createUuid().toString().remove("{").remove("}").remove("-"), ids[j%3], (ulong)i*1200+j*100, (ulong)1200, (static_cast<SpecificType>(i%3+1)));
             ui->widget->addClip(ids[j%3],clip);
         }
     }
