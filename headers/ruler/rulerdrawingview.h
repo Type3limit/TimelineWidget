@@ -10,12 +10,12 @@
 #include "ruleritem.h"
 #include "anchorheaditem.h"
 #include <QScrollBar>
-class rulerdrawingview: public SelfContainedSceneView
+class RulerDrawingView: public SelfContainedSceneView
 {
     Q_OBJECT
 public:
-    explicit rulerdrawingview(QWidget* parent = nullptr);
-    ~rulerdrawingview()
+    explicit RulerDrawingView(QWidget* parent = nullptr);
+    ~RulerDrawingView()
     {
         SAFE_DELETE(m_ruler);
     }
@@ -26,12 +26,12 @@ protected:
     void mouseMoveEvent(QMouseEvent* evt)override;
 
 private:
-    ruleritem* m_ruler = nullptr;
-    anchorheaditem* m_anchorHead = nullptr;
+    RulerItem* m_ruler = nullptr;
+    AnchorHeadItem* m_anchorHead = nullptr;
     public slots:
-    void OnTrackBodyScroll(int pos);
+    void onTrackBodyScroll(int pos);
     signals:
-    void OnAnchorHeadReachEdge(int direction);
+    void onAnchorHeadReachEdge(int direction);
 };
 
 

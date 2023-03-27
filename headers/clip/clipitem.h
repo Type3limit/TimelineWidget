@@ -11,16 +11,16 @@
 #include "MimeData/trackmime.h"
 #include "shadowclipitem.h"
 #include "clipdraghandle.h"
-class clipitem: public QGraphicsItem
+class ClipItem: public QGraphicsItem
 {
 public:
-    explicit clipitem(QGraphicsItem* parent=nullptr);
-    explicit clipitem(const QString& key, QGraphicsItem* parent=nullptr);
-    ~clipitem();
+    explicit ClipItem(QGraphicsItem* parent=nullptr);
+    explicit ClipItem(const QString& key, QGraphicsItem* parent=nullptr);
+    ~ClipItem();
     bool insertToTrack(const QString& trackKey);
     bool removeFromTrack();
-    clipmime getMimeData(const QString& clipKey, bool searchWhenTrackKeyEmpty = true) const;
-    trackmime getTrackData(const QString& trackKey, bool searchWhenTrackKeyEmpty = true)const;
+    ClipMime getMimeData(const QString& clipKey, bool searchWhenTrackKeyEmpty = true) const;
+    TrackMime getTrackData(const QString& trackKey, bool searchWhenTrackKeyEmpty = true)const;
     void forceUpdate();
 protected:
     QRectF boundingRect() const override;
@@ -33,13 +33,13 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 private:
-    void Init();
+    void init();
     void clipDrag(int x,int y);
-    clipmime stopClipDrag(bool isMultiMode = false);
-    bool checkForCollision(clipmime& mime, const QString& originTrackKey="");
-    bool preCheckForCollision(clipmime& mime, trackmime &targetTrack);
+    ClipMime stopClipDrag(bool isMultiMode = false);
+    bool checkForCollision(ClipMime& mime, const QString& originTrackKey="");
+    bool preCheckForCollision(ClipMime& mime, TrackMime &targetTrack);
     void checkExpandHandle(const QRectF& clipRect);
-    ulong getStartPosAfterDragMove(clipmime& mime);
+    ulong getStartPosAfterDragMove(ClipMime& mime);
 private:
     volatile bool m_isGrouped = false;
     volatile bool m_isDragMoved= false;
@@ -56,13 +56,13 @@ private:
     QString m_multiSelectionPrefixedTrackKey="";
     QRectF m_shadowRect;
     QRectF m_originRect;
-    shadowclipitem* m_shadow = nullptr;
-    clipdraghandle* m_leftHandle = nullptr;
-    clipdraghandle* m_rightHandle = nullptr;
+    ShadowClipItem* m_shadow = nullptr;
+    ClipDragHandle* m_leftHandle = nullptr;
+    ClipDragHandle* m_rightHandle = nullptr;
     QPixmap m_image;
 
-    friend class timelinewidget;
-    friend class trackbodyitem;
+    friend class TimelineWidget;
+    friend class TrackBodyItem;
 };
 
 

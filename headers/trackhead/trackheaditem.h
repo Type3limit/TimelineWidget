@@ -8,12 +8,12 @@
 
 #include <QGraphicsItem>
 #include "MimeData/trackmime.h"
-class trackheaditem: public QGraphicsItem
+class TrackHeadItem: public QGraphicsItem
 {
 public:
-    explicit trackheaditem(QGraphicsItem* parent);
-    explicit trackheaditem(const trackmime& curData, QGraphicsItem* parent= nullptr);
-    trackmime getMimeData() const;
+    explicit TrackHeadItem(QGraphicsItem* parent);
+    explicit TrackHeadItem(const TrackMime& curData, QGraphicsItem* parent= nullptr);
+    TrackMime getMimeData() const;
     void forceUpdate();
 
 protected:

@@ -11,13 +11,13 @@
 #include <QDir>
 #include <functional>
 #include <type_traits>
-namespace extensionMethods
+namespace ExtensionMethods
 {
 ///
-/// The sourcesExtension class , implemented a bunch of methods to enhance operations with sets
+/// The SourcesExtension class , implemented a bunch of methods to enhance operations with sets
 ///
 template<typename finderType>
-class sourcesExtension
+class SourcesExtension
 {
 public:
     ///get the first element that matched with condition,need pass the total count of array,if there has no matched one,return defaultValue

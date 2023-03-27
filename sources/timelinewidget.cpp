@@ -14,18 +14,18 @@
 #include "timelinedefination.h"
 #include "intervalwatcher.h"
 
-timelinewidget::timelinewidget(QWidget *parent)
+TimelineWidget::TimelineWidget(QWidget *parent)
     :
-    QWidget(parent), ui(new Ui::timelinewidget)
+    QWidget(parent), ui(new Ui::TimelineWidget)
 {
     ui->setupUi(this);
-    SET_POINTER<timelinewidget>(this);
+    SET_POINTER<TimelineWidget>(this);
     initWidgets();
 }
 
-timelinewidget::~timelinewidget()
+TimelineWidget::~TimelineWidget()
 {
-    UNSET_POINTER<timelinewidget>();
+    UNSET_POINTER<TimelineWidget>();
     delete ui;
     SAFE_DELETE(m_tickView)
     SAFE_DELETE(m_rulerView)
@@ -33,20 +33,20 @@ timelinewidget::~timelinewidget()
     SAFE_DELETE(m_trackHeadView)
 }
 
-void timelinewidget::initWidgets()
+void TimelineWidget::initWidgets()
 {
     //刻度单位标识区
-    m_tickView = new tickdrawingview(this);
+    m_tickView = new TickDrawingView(this);
     ui->LeftTopRegion->layout()->addWidget(m_tickView);
     m_tickView
         ->setDrawingAreaSize(ui->LeftTopRegion->width() - WIDGET_MARGIN, ui->LeftTopRegion->height() - WIDGET_MARGIN);
     //时间线刻度区
-    m_rulerView = new rulerdrawingview(this);
+    m_rulerView = new RulerDrawingView(this);
     ui->RightTopRegion->layout()->addWidget(m_rulerView);
     m_rulerView
         ->setDrawingAreaSize(ui->RightTopRegion->width() - WIDGET_MARGIN, ui->RightTopRegion->height() - WIDGET_MARGIN);
     //轨道头功能区
-    m_trackHeadView = new trackheaddrawingview(this);
+    m_trackHeadView = new TrackHeadDrawingView(this);
     ui->LeftBottomRegion->layout()->addWidget(m_trackHeadView);
     auto actualHeight = m_timelineData.tracks.size() * TRACK_HEIGHT;
     actualHeight = actualHeight < ui->RightBottomRegion->height() ? ui->RightBottomRegion->height() - WIDGET_MARGIN * 2
@@ -54,23 +54,23 @@ void timelinewidget::initWidgets()
     m_trackHeadView->setDrawingAreaSize(ui->LeftBottomRegion->width() - WIDGET_MARGIN,
                                         (int)actualHeight);
     //轨道体切片区
-    m_trackBodyView = new trackbodydrawingview(this);
+    m_trackBodyView = new TrackBodyDrawingView(this);
     ui->RightBottomRegion->layout()->addWidget(m_trackBodyView);
     m_trackBodyView->setDrawingAreaSize(ui->RightBottomRegion->width() - WIDGET_MARGIN,
                                         (int)actualHeight);
     //标尺和轨道体的滚动信号链接
-    connect(m_trackBodyView, &trackbodydrawingview::ScrollChanged,
-            m_rulerView, &rulerdrawingview::OnTrackBodyScroll);
+    connect(m_trackBodyView, &TrackBodyDrawingView::scrollChanged,
+            m_rulerView, &RulerDrawingView::onTrackBodyScroll);
 
-    connect(m_trackBodyView, &trackbodydrawingview::VScollChanged,
-            m_trackHeadView, &trackheaddrawingview::OnTrackBodyScroll);
+    connect(m_trackBodyView, &TrackBodyDrawingView::vScollChanged,
+            m_trackHeadView, &TrackHeadDrawingView::onTrackBodyScroll);
 
     //标尺移动到边缘位置自动滚动
-    connect(m_rulerView, &rulerdrawingview::OnAnchorHeadReachEdge, m_trackBodyView,
-            &trackbodydrawingview::ScrollToPos);
+    connect(m_rulerView, &RulerDrawingView::onAnchorHeadReachEdge, m_trackBodyView,
+            &TrackBodyDrawingView::scrollToPos);
 }
 
-void timelinewidget::wheelEvent(QWheelEvent *event)
+void TimelineWidget::wheelEvent(QWheelEvent *event)
 {
     auto curTick = event->angleDelta().y() < 0 ? (m_timelineData.m_ulFrameTick <= WHEEL_SCALE_DELTA ? 1 :
                                                   m_timelineData.m_ulFrameTick - WHEEL_SCALE_DELTA) : (
@@ -83,7 +83,7 @@ void timelinewidget::wheelEvent(QWheelEvent *event)
     QWidget::wheelEvent(event);
 }
 
-void timelinewidget::resizeEvent(QResizeEvent *event)
+void TimelineWidget::resizeEvent(QResizeEvent *event)
 {
 
     if (m_timelineData.m_ulMaxDuration == 0 && m_timelineData.m_ulFrameTick == 1)//默认状态时，根据控件宽度设置一个绘制区
@@ -125,7 +125,7 @@ void timelinewidget::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
 }
 
-QRectF timelinewidget::getArea(timelinewidget::Area pos) const
+QRectF TimelineWidget::getArea(TimelineWidget::Area pos) const
 {
     QRect curRect;
     switch (pos) {
@@ -152,7 +152,7 @@ QRectF timelinewidget::getArea(timelinewidget::Area pos) const
             static_cast<qreal>(curRect.height() - WIDGET_MARGIN)};
 }
 
-QRectF timelinewidget::getViewPort(timelinewidget::Area pos) const
+QRectF TimelineWidget::getViewPort(TimelineWidget::Area pos) const
 {
     switch (pos) {
     case LeftTop: {
@@ -172,7 +172,7 @@ QRectF timelinewidget::getViewPort(timelinewidget::Area pos) const
     }
 }
 
-void timelinewidget::updateMaxTick()
+void TimelineWidget::updateMaxTick()
 {
     auto curMax =
         qRound((double)(maxDuration() * MIN_TICK_WIDTH) / getArea(Area::RightTop).width());
@@ -186,30 +186,30 @@ void timelinewidget::updateMaxTick()
 }
 
 #pragma region get property
-ulong timelinewidget::frameTick() const
+ulong TimelineWidget::frameTick() const
 {
 
     return m_timelineData.m_ulFrameTick < 1 ? 1 : m_timelineData.m_ulFrameTick;
 
 }
-ulong timelinewidget::maxDuration() const
+ulong TimelineWidget::maxDuration() const
 {
     return m_timelineData.m_ulMaxDuration;
 }
-void timelinewidget::setMaxDuration(ulong curData)
+void TimelineWidget::setMaxDuration(ulong curData)
 {
 
     m_timelineData.m_ulMaxDuration = curData;
     updateMaxTick();
 
 }
-ulong timelinewidget::curPos() const
+ulong TimelineWidget::curPos() const
 {
     return m_timelineData.m_ulCurPos;
 
 }
 
-void timelinewidget::setCurPos(ulong pos, bool shouldEmitSignal)
+void TimelineWidget::setCurPos(ulong pos, bool shouldEmitSignal)
 {
     if (m_timelineData.m_ulCurPos != pos) {
 
@@ -220,7 +220,7 @@ void timelinewidget::setCurPos(ulong pos, bool shouldEmitSignal)
     }
 }
 
-void timelinewidget::setFrameTick(ulong curData, bool shouldEmitSignal)
+void TimelineWidget::setFrameTick(ulong curData, bool shouldEmitSignal)
 {
     //if (m_timelineData.m_ulFrameTick != curData) {
     m_timelineData.m_ulFrameTick = curData;
@@ -248,17 +248,17 @@ void timelinewidget::setFrameTick(ulong curData, bool shouldEmitSignal)
 
 }
 
-int timelinewidget::getTrackCount() const
+int TimelineWidget::getTrackCount() const
 {
     return (int)m_timelineData.tracks.size();
 }
 
-double timelinewidget::percentPerUnit()
+double TimelineWidget::percentPerUnit()
 {
     return (maxDuration()) / m_trackBodyView->scene()->width();
 }
 
-bool timelinewidget::getTrackByVerticalPos(double yPos, trackmime &data)
+bool TimelineWidget::getTrackByVerticalPos(double yPos, TrackMime &data)
 {
     //yPos += m_trackBodyView->getVScroll();
     auto trackBodyHeight = getTrackCount() * TRACK_HEIGHT;
@@ -273,7 +273,7 @@ bool timelinewidget::getTrackByVerticalPos(double yPos, trackmime &data)
     }
     else {
         index = (int)((yPos) / (double)TRACK_HEIGHT);
-        qDebug() << "index in" << index;
+        //qDebug() << "index in" << index;
         if (index < 0 || index > m_timelineData.tracks.size()) {
             return false;
         }
@@ -285,11 +285,11 @@ bool timelinewidget::getTrackByVerticalPos(double yPos, trackmime &data)
 #pragma endregion
 
 #pragma region Track option
-bool timelinewidget::addTrack(const QString &curKey, int trackType, int index = -1)
+bool TimelineWidget::addTrack(const QString &curKey, int trackType, int index = -1)
 {
 
     auto actualIndex = (index < 0 ? getTrackCount() : (index >= getTrackCount() ? getTrackCount() : index));
-    trackmime curData{curKey, actualIndex, static_cast<SpecificType>(trackType)};
+    TrackMime curData{curKey, actualIndex, static_cast<SpecificType>(trackType)};
     //修改源数据
     auto curTracks = m_timelineData.getTracks();
     for (auto itr: curTracks) {
@@ -301,7 +301,7 @@ bool timelinewidget::addTrack(const QString &curKey, int trackType, int index = 
     bool result;
     auto frameWidth = (m_timelineData.m_ulMaxDuration / m_timelineData.m_ulFrameTick) * MIN_TICK_WIDTH;
     auto widthInUse = frameWidth;
-    m_timelineData.addTrack(trackmime(curKey, actualIndex, static_cast<SpecificType>(trackType)));
+    m_timelineData.addTrack(TrackMime(curKey, actualIndex, static_cast<SpecificType>(trackType)));
     result = (m_trackHeadView->addTrackHead(curData) && m_trackBodyView->addTrackBody(curData));
     if (m_trackHeadView) {
         auto actualHeight = m_timelineData.tracks.size() * TRACK_HEIGHT;
@@ -320,30 +320,30 @@ bool timelinewidget::addTrack(const QString &curKey, int trackType, int index = 
     }
     return result;
 }
-void timelinewidget::alterTrackData(const QString &key, const trackmime &curData)
+void TimelineWidget::alterTrackData(const QString &key, const TrackMime &curData)
 {
     m_timelineData.setTrack(key, curData);
     emit TrackUpdated(key);
 }
-bool timelinewidget::getTrackData(trackmime &data, const QString &key)
+bool TimelineWidget::getTrackData(TrackMime &data, const QString &key)
 {
     return m_timelineData.getTrack(data, key);
 }
 //-1 get last index data
-trackmime timelinewidget::getTrackData(int index = -1)
+TrackMime TimelineWidget::getTrackData(int index = -1)
 {
-    trackmime curData;
+    TrackMime curData;
     if (index == -1)
         index = (int)(m_timelineData.tracks.size()) - 1;
-    m_timelineData.getTrack(curData, [=](const trackmime &data) -> bool
+    m_timelineData.getTrack(curData, [=](const TrackMime &data) -> bool
     {
         return data.index == index;
     });
     return curData;
 }
-void timelinewidget::removeTrack(const QString &key)
+void TimelineWidget::removeTrack(const QString &key)
 {
-    trackmime curTrack;
+    TrackMime curTrack;
     if (!m_timelineData.getTrack(curTrack, key)) {
         qDebug() << "can not find track with key :[" << key << "]";
         return;
@@ -364,27 +364,26 @@ void timelinewidget::removeTrack(const QString &key)
 #pragma  endregion
 
 #pragma region clip option
-void timelinewidget::addClip(const QString &trackKey, const clipmime &mime, bool shouldEmitSignal)
+void TimelineWidget::addClip(const QString &trackKey, const ClipMime &mime, bool shouldEmitSignal)
 {
-    trackmime cur;
-    if (!m_timelineData.getTrack(cur, [&](const trackmime &x) -> bool
+    TrackMime cur;
+    if (!m_timelineData.getTrack(cur, [&](const TrackMime &x) -> bool
     {
         return x.id == trackKey;
     })) {
         qDebug() << "add clip failed , track:[" << trackKey << "]is not exist";
         return;
     }
-    //TODO:check if any clips in current clip area (break it and move others)
     m_timelineData.addClip(cur.id, mime);
     updateMaxDuration();
     if (shouldEmitSignal) {
         emit TrackClipChanged(trackKey, mime.id, 1);
     }
 }
-void timelinewidget::removeClip(const clipmime &clipKey, bool searchWhenTrackKeyEmpty, bool shouldEmitSignal)
+void TimelineWidget::removeClip(const ClipMime &clipKey, bool searchWhenTrackKeyEmpty, bool shouldEmitSignal)
 {
     auto curTrackKey = clipKey.trackId;
-    trackmime searchTrack;
+    TrackMime searchTrack;
     if (curTrackKey.isEmpty()) {
         if (!searchWhenTrackKeyEmpty) {
             qDebug() << "remove clip failed,can not find clip[" << clipKey.id
@@ -397,7 +396,7 @@ void timelinewidget::removeClip(const clipmime &clipKey, bool searchWhenTrackKey
         m_timelineData.getTrack(searchTrack, clipKey.trackId);
     }
     if (searchTrack.isDefaultData()) {
-        if (!m_timelineData.getTrack(searchTrack, [&](trackmime curTrack) -> bool
+        if (!m_timelineData.getTrack(searchTrack, [&](TrackMime curTrack) -> bool
         {
             return curTrack.getClip(clipKey.id).isDefaultData();
         })) {
@@ -418,14 +417,14 @@ void timelinewidget::removeClip(const clipmime &clipKey, bool searchWhenTrackKey
     }
 
 }
-void timelinewidget::addClip(int index, clipmime &mime, bool shouldEmitSignal)
+void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal)
 {
-    trackmime cur;
+    TrackMime cur;
     auto actualTrackSize = (int)m_timelineData.tracks.size();
     if (index == -1 || index > actualTrackSize) {
         index = actualTrackSize;
     }//set to last;
-    if (!m_timelineData.getTrack(cur, [&](const trackmime &x) -> bool
+    if (!m_timelineData.getTrack(cur, [&](const TrackMime &x) -> bool
     {
         return x.index == index;
     })) {
@@ -439,19 +438,19 @@ void timelinewidget::addClip(int index, clipmime &mime, bool shouldEmitSignal)
     }
     updateMaxDuration();
 }
-void timelinewidget::alterClipData(const QString &key,
+void TimelineWidget::alterClipData(const QString &key,
                                    const QString &trackKey,
-                                   const clipmime &mime,
+                                   const ClipMime &mime,
                                    bool searchWhenTrackKeyEmpty,
                                    bool shouldEmitSignal)
 {
-    trackmime curTrack;
+    TrackMime curTrack;
     //无法根据Track key找到轨道的情况下，尝试搜索轨道
     if (!m_timelineData.getTrack(curTrack, trackKey)) {
         if (!searchWhenTrackKeyEmpty) {
             return;
         }
-        if (!m_timelineData.getTrack(curTrack, [&](trackmime track) -> bool
+        if (!m_timelineData.getTrack(curTrack, [&](TrackMime track) -> bool
         { return !track.getClip(key).isDefaultData(); })) {
             qDebug() << "alter clip with key:[" << key << "]failed,can not find it in any track";
             return;
@@ -459,12 +458,12 @@ void timelinewidget::alterClipData(const QString &key,
     }
     bool isTrackChanged = curTrack.id != mime.trackId;//轨道id和mime数据轨道id不一致的情况下，视为clip的轨道发生变更
     if (isTrackChanged) {
-        trackmime newTrack;//找到需要插入的新轨道
+        TrackMime newTrack;//找到需要插入的新轨道
         if (!m_timelineData.getTrack(newTrack, mime.trackId)) {
             qDebug() << "change track failed with track id:[" << mime.trackId << "],can not find it";
             return;
         }
-        clipmime origin = mime;
+        ClipMime origin = mime;
         origin.trackId = curTrack.id;
         removeClip(origin);
         addClip(newTrack.id, mime);
@@ -478,18 +477,18 @@ void timelinewidget::alterClipData(const QString &key,
 
 }
 
-void timelinewidget::alterClipData(const QString &key,
+void TimelineWidget::alterClipData(const QString &key,
                                    const QString &trackKey,
-                                   const QList<clipmime> &mimes,
+                                   const QList<ClipMime> &mimes,
                                    bool searchWhenTrackKeyEmpty)
 {
-    trackmime curTrack;
+    TrackMime curTrack;
     //无法根据Track key找到轨道的情况下，尝试搜索轨道
     if (!m_timelineData.getTrack(curTrack, trackKey)) {
         if (!searchWhenTrackKeyEmpty) {
             return;
         }
-        if (!m_timelineData.getTrack(curTrack, [&](trackmime track) -> bool
+        if (!m_timelineData.getTrack(curTrack, [&](TrackMime track) -> bool
         { return !track.getClip(key).isDefaultData(); })) {
             qDebug() << "alter clip with key:[" << key << "]failed,can not find it in any track";
             return;
@@ -500,14 +499,14 @@ void timelinewidget::alterClipData(const QString &key,
     if (originClip.isDefaultData())
         return;
     removeClip(originClip);
-    std::for_each(mimes.begin(), mimes.end(), [&](const clipmime &curClip) -> void
+    std::for_each(mimes.begin(), mimes.end(), [&](const ClipMime &curClip) -> void
     {
         addClip(curClip.trackId, curClip);
     });
 
 }
 
-void timelinewidget::setSelectedClip(const QString &clip, bool isCancel)
+void TimelineWidget::setSelectedClip(const QString &clip, bool isCancel)
 {
     if (isCancel) {
         m_selectedClips.removeAll(clip);
@@ -524,7 +523,7 @@ void timelinewidget::setSelectedClip(const QString &clip, bool isCancel)
     }
 
 }
-void timelinewidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
+void TimelineWidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
 {
     if (isCancel) {
         std::for_each(clips.begin(), clips.end(), [&](const QString &curClip) -> void
@@ -548,7 +547,7 @@ void timelinewidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
     }
 
 }
-void timelinewidget::setSelectedClip(const QList<clipitem *> &clips, bool isCancel)
+void TimelineWidget::setSelectedClip(const QList<ClipItem *> &clips, bool isCancel)
 {
     if (isCancel) {
 
@@ -556,7 +555,7 @@ void timelinewidget::setSelectedClip(const QList<clipitem *> &clips, bool isCanc
         m_trackBodyView->update();
     }
     else {
-        std::for_each(clips.begin(), clips.end(), [&](clipitem *curClip) -> void
+        std::for_each(clips.begin(), clips.end(), [&](ClipItem *curClip) -> void
         {
             if (curClip == nullptr)
                 return;
@@ -573,7 +572,7 @@ void timelinewidget::setSelectedClip(const QList<clipitem *> &clips, bool isCanc
 
 }
 
-void timelinewidget::updateSelectedSourceCache(const QString &clipId, clipitem *clip)
+void TimelineWidget::updateSelectedSourceCache(const QString &clipId, ClipItem *clip)
 {
     if (!m_selectedClipsCache.contains(clipId)) {
         m_selectedClipsCache.insert(clipId, clip);
@@ -583,7 +582,7 @@ void timelinewidget::updateSelectedSourceCache(const QString &clipId, clipitem *
     }
 }
 
-void timelinewidget::setClipMovement(int xDiff, int yDiff)
+void TimelineWidget::setClipMovement(int xDiff, int yDiff)
 {
     if (m_selectedClips.count() <= 0)
         return;
@@ -611,19 +610,19 @@ void timelinewidget::setClipMovement(int xDiff, int yDiff)
 
 }
 
-bool timelinewidget::isSelected(const QString &clipKey)
+bool TimelineWidget::isSelected(const QString &clipKey)
 {
     return m_selectedClips.contains(clipKey);
 }
-timelinemime timelinewidget::getTimeMime()
+TimelineMime TimelineWidget::getTimeMime()
 {
     return m_timelineData;
 }
-ulong timelinewidget::maxFrameTick() const
+ulong TimelineWidget::maxFrameTick() const
 {
     return m_timelineData.m_maxFrameTick;
 }
-void timelinewidget::forceUpdate(timelinewidget::Area pos)
+void TimelineWidget::forceUpdate(TimelineWidget::Area pos)
 {
     switch (pos) {
     case LeftTop: {
@@ -645,7 +644,7 @@ void timelinewidget::forceUpdate(timelinewidget::Area pos)
     }
 }
 
-void timelinewidget::updateMaxDuration()
+void TimelineWidget::updateMaxDuration()
 {
     auto curLastClip = m_timelineData.getLastClip();
     if (curLastClip.isDefaultData())
@@ -659,7 +658,7 @@ void timelinewidget::updateMaxDuration()
     setMaxDuration(curMax);
 }
 
-void timelinewidget::adaptTimelineLength()
+void TimelineWidget::adaptTimelineLength()
 {
     auto curLastClip = m_timelineData.getLastClip();
     if (curLastClip.isDefaultData())
@@ -676,28 +675,28 @@ void timelinewidget::adaptTimelineLength()
     setFrameTick(setFrame);
     update();
 }
-void timelinewidget::clipMoved(int x, int y, bool isOver)
+void TimelineWidget::clipMoved(int x, int y, bool isOver)
 {
     if (isOver && m_selectedClips.count() > 1)//multi clips process
     {
 
         bool hasCollision = false;
         bool atLeastOne = false;
-        clipmime colliedMime;
-        QMap<trackmime, QList<clipmime>> movements;
+        ClipMime colliedMime;
+        QMap<TrackMime, QList<ClipMime>> movements;
         for (const auto &clipKey: m_selectedClips) {
 
             if (!m_selectedClipsCache.contains(clipKey)) {
                 return;
             }
-            trackmime curTrackData;
+            TrackMime curTrackData;
             hasCollision = m_selectedClipsCache[clipKey]->preCheckForCollision(colliedMime, curTrackData);
             if (hasCollision) {
                 atLeastOne = true;
             }
             if (!colliedMime.isDefaultData() && !curTrackData.isDefaultData()) {
                 if (!movements.contains(curTrackData)) {
-                    movements.insert(curTrackData, QList<clipmime>());
+                    movements.insert(curTrackData, QList<ClipMime>());
 
                 }
                 movements[curTrackData].push_back(colliedMime);
@@ -713,7 +712,6 @@ void timelinewidget::clipMoved(int x, int y, bool isOver)
             });
         }
         else {
-            //TODO:if has collision, check and make every clip moved to the right track;
             multiClipCollied(movements);
         }
     }
@@ -735,9 +733,9 @@ void timelinewidget::clipMoved(int x, int y, bool isOver)
     m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
 }
 
-QList<clipitem *> timelinewidget::getAllSelectedClip()
+QList<ClipItem *> TimelineWidget::getAllSelectedClip()
 {
-    QList<clipitem *> result;
+    QList<ClipItem *> result;
     std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &clipKey) -> void
     {
         if (m_selectedClipsCache.contains(clipKey)) {
@@ -747,29 +745,29 @@ QList<clipitem *> timelinewidget::getAllSelectedClip()
     return result;
 }
 
-void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &movements)
+void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &movements)
 {
 
 
     //get all selected mime data
-    auto selectedClips = extensionMethods::sourcesExtension<QString>::select<clipmime>(m_selectedClips,
-                                                                                       [&](const QString &clipKey) -> clipmime
+    auto selectedClips = ExtensionMethods::SourcesExtension<QString>::select<ClipMime>(m_selectedClips,
+                                                                                       [&](const QString &clipKey) -> ClipMime
                                                                                        {
                                                                                            return m_timelineData
                                                                                                .getClip(clipKey, "");
                                                                                        });
     //group clips by track key
-    auto trackClips = extensionMethods::sourcesExtension<clipmime>::groupBy<QString>(selectedClips,
-                                                                                     [&](const clipmime &curClip) -> QString
+    auto trackClips = ExtensionMethods::SourcesExtension<ClipMime>::groupBy<QString>(selectedClips,
+                                                                                     [&](const ClipMime &curClip) -> QString
                                                                                      {
                                                                                          return curClip.trackId;
                                                                                      });
     auto tracks = movements.keys();
-    auto minTrack = std::min_element(tracks.begin(), tracks.end(), [](const trackmime &l, const trackmime &r) -> bool
+    auto minTrack = std::min_element(tracks.begin(), tracks.end(), [](const TrackMime &l, const TrackMime &r) -> bool
     {
         return l.index < r.index;
     });
-    auto maxTrack = std::max_element(tracks.begin(), tracks.end(), [](const trackmime &l, const trackmime &r) -> bool
+    auto maxTrack = std::max_element(tracks.begin(), tracks.end(), [](const TrackMime &l, const TrackMime &r) -> bool
     {
         return l.index < r.index;
     });
@@ -777,14 +775,14 @@ void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &mo
     if (minTrack == tracks.end() || maxTrack == tracks.end())
         return;
 
-    QMap<QString, trackmime> TrackData;
+    QMap<QString, TrackMime> TrackData;
     for (const auto &trackKey: trackClips.keys()) {
-        trackmime curTrackMime;
+        TrackMime curTrackMime;
         if (getTrackData(curTrackMime, trackKey)) {
             TrackData.insert(trackKey, curTrackMime);
         }
     }
-    QMap<trackmime, QString> newTracksRef;
+    QMap<TrackMime, QString> newTracksRef;
     //get tracks mime data,find maximal index and the minimum
     for (const auto &itr: tracks) {
         auto addIndex = (itr.index < 1) ? 1 : (itr.index);
@@ -810,12 +808,12 @@ void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &mo
     for (int i = 0; i < addCount; i++) {
         auto curKey = trackKeys[i];
         auto curMimes = trackClips[curKey];
-        trackmime clipOriginTrack = TrackData[curKey];
+        TrackMime clipOriginTrack = TrackData[curKey];
         for (const auto &curMime: curMimes) {
             auto movedMime = m_selectedClipsCache[curMime.id]->stopClipDrag(true);
-            auto trackInfo = extensionMethods::sourcesExtension<clipmime>
-            ::whichHasValue<trackmime>(movements, movedMime,
-                                       [](const clipmime &l, const clipmime &r)
+            auto trackInfo = ExtensionMethods::SourcesExtension<ClipMime>
+            ::whichHasValue<TrackMime>(movements, movedMime,
+                                       [](const ClipMime &l, const ClipMime &r)
                                        { return l.id == r.id; });
             if (!trackInfo.isDefaultData()) {
                 movedMime.trackId = newTracksRef[trackInfo];
@@ -831,14 +829,14 @@ void timelinewidget::multiClipCollied(const QMap<trackmime, QList<clipmime>> &mo
 
 #pragma region dataResume
 
-bool timelinewidget::buildFromJsonFile(const QString &filePath)
+bool TimelineWidget::buildFromJsonFile(const QString &filePath)
 {
-    return buildFromJson(extensionMethods::QStringExtension::readAllText(filePath));
+    return buildFromJson(ExtensionMethods::QStringExtension::readAllText(filePath));
 }
-bool timelinewidget::buildFromJson(const QString &data)
+bool TimelineWidget::buildFromJson(const QString &data)
 {
 
-    if (extensionMethods::QStringExtension::isNullOrEmpty(data))
+    if (ExtensionMethods::QStringExtension::isNullOrEmpty(data))
         return false;
     intervalwatcher iw;
     iw.start();
@@ -847,7 +845,7 @@ bool timelinewidget::buildFromJson(const QString &data)
     FROM_JSON(m_timelineData, data.toStdString().c_str());
     std::sort(m_timelineData.tracks.begin(),
               m_timelineData.tracks.end(),
-              [&](const trackmime &left, const trackmime &right) -> bool
+              [&](const TrackMime &left, const TrackMime &right) -> bool
               {
                   return left.index < right.index;
               });

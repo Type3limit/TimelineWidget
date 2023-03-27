@@ -8,21 +8,21 @@
 #include "intervalwatcher.h"
 #include <QGraphicsSceneMouseEvent>
 #include <QApplication>
-#define timeline() (GET_POINTER<timelinewidget>())
-clipitem::clipitem(QGraphicsItem *parent)
+#define timeline() (GET_POINTER<TimelineWidget>())
+ClipItem::ClipItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)
 {
 
-    Init();
+    init();
 
 }
 
-clipitem::clipitem(const QString &key, QGraphicsItem *parent)
+ClipItem::ClipItem(const QString &key, QGraphicsItem *parent)
 {
     m_mimeKey = key;
-    Init();
+    init();
 }
-clipitem::~clipitem()
+ClipItem::~ClipItem()
 {
 
     SAFE_DELETE(m_shadow);
@@ -30,17 +30,17 @@ clipitem::~clipitem()
     SAFE_DELETE(m_rightHandle);
 
 }
-void clipitem::Init()
+void ClipItem::init()
 {
     setFlags(ItemIsSelectable | ItemSendsGeometryChanges);
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
-    m_shadow = new shadowclipitem(m_mimeKey);
-    m_leftHandle = new clipdraghandle(this);
-    m_rightHandle = new clipdraghandle(this);
+    m_shadow = new ShadowClipItem(m_mimeKey);
+    m_leftHandle = new ClipDragHandle(this);
+    m_rightHandle = new ClipDragHandle(this);
     m_image.load("./test.png");
 }
-void clipitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     //intervalwatcher iw;
     //iw.start();
@@ -52,8 +52,8 @@ void clipitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     auto curData = trackData.getClip(m_mimeKey);
     auto xIndex = ceil(((double)(curData.startPos) / timeline()->frameTick() * MIN_TICK_WIDTH));
     auto width = ceil((double)(curData.duration) / timeline()->frameTick() * MIN_TICK_WIDTH);
-    auto curArea = timeline()->getArea(timelinewidget::RightBottom);
-    double yIndex = trackData.index * TRACK_HEIGHT+1;
+    auto curArea = timeline()->getArea(TimelineWidget::RightBottom);
+    double yIndex = trackData.index * TRACK_HEIGHT + 1;
     bool shouldDrawText = false;
     bool shouldDrawPic = false;
     if (trackBodyHeight < curArea.height())//y center alignment
@@ -84,9 +84,9 @@ void clipitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     QPainterPath path;
     path.addRoundedRect(QRectF(xIndex, yIndex + 0.5, width, TRACK_HEIGHT - 2), 5, 5);
     painter->fillPath(path, QBrush(paintColor));
-    auto limitedArea = timeline()->getViewPort(timelinewidget::RightBottom);
+    auto limitedArea = timeline()->getViewPort(TimelineWidget::RightBottom);
     if (m_isOnHover || timeline()->isSelected(m_mimeKey)) {
-        painter->drawRoundedRect(QRectF(xIndex, yIndex, width, TRACK_HEIGHT-1), 5, 5);
+        painter->drawRoundedRect(QRectF(xIndex, yIndex, width, TRACK_HEIGHT - 1), 5, 5);
     }
 
     //TODO:draw extra info of clip,maybe we should change the mime data struct
@@ -110,14 +110,14 @@ void clipitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
     //qDebug()<<iw.milliSecond()<<" ms to finish clip draw";
 
 }
-QRectF clipitem::boundingRect() const
+QRectF ClipItem::boundingRect() const
 {
     auto trackBodyHeight = timeline()->getTrackCount() * TRACK_HEIGHT;
     auto trackData = getTrackData(m_trackMimeKey);
     auto curData = trackData.getClip(m_mimeKey);
     auto xIndex = ((double)(curData.startPos) / timeline()->frameTick()) * MIN_TICK_WIDTH;
     auto width = ((double)(curData.duration) / timeline()->frameTick()) * MIN_TICK_WIDTH;
-    auto curArea = timeline()->getArea(timelinewidget::RightBottom);
+    auto curArea = timeline()->getArea(TimelineWidget::RightBottom);
     double yIndex = trackData.index * TRACK_HEIGHT;
     if (trackBodyHeight < curArea.height())//y center alignment
     {
@@ -125,14 +125,14 @@ QRectF clipitem::boundingRect() const
     }
     return {xIndex, yIndex, width, TRACK_HEIGHT};
 }
-bool clipitem::insertToTrack(const QString &trackKey)
+bool ClipItem::insertToTrack(const QString &trackKey)
 {
     if (!m_trackMimeKey.isEmpty())
         return false;
     m_trackMimeKey = trackKey;
     return true;
 }
-bool clipitem::removeFromTrack()
+bool ClipItem::removeFromTrack()
 {
     if (m_leftHandle->isAddToScene()) {
         m_leftHandle->setAddToScene(false);
@@ -148,17 +148,17 @@ bool clipitem::removeFromTrack()
     m_trackMimeKey = "";
     return true;
 }
-clipmime clipitem::getMimeData(const QString &clipKey, bool searchWhenTrackKeyEmpty) const
+ClipMime ClipItem::getMimeData(const QString &clipKey, bool searchWhenTrackKeyEmpty) const
 {
     return getTrackData(m_trackMimeKey, searchWhenTrackKeyEmpty).getClip(clipKey);
 }
-trackmime clipitem::getTrackData(const QString &trackKey, bool searchWhenTrackKeyEmpty) const
+TrackMime ClipItem::getTrackData(const QString &trackKey, bool searchWhenTrackKeyEmpty) const
 {
     if (trackKey.isEmpty()) {
         if (!searchWhenTrackKeyEmpty)
             return {};
         auto TrackCount = timeline()->getTrackCount();
-        trackmime curData;
+        TrackMime curData;
         for (int i = 0; i < TrackCount; i++) {
             curData = timeline()->getTrackData(i);
             if (!curData.getClip(m_mimeKey).isDefaultData()) {
@@ -168,18 +168,18 @@ trackmime clipitem::getTrackData(const QString &trackKey, bool searchWhenTrackKe
         return curData;
     }
     else {
-        trackmime curTrackData;
+        TrackMime curTrackData;
         if (!timeline()->getTrackData(curTrackData, trackKey))
             return {};
         return curTrackData;
     }
 
 }
-QVariant clipitem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
+QVariant ClipItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant &value)
 {
     return QGraphicsItem::itemChange(change, value);
 }
-void clipitem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     m_prePoint = event->scenePos();
     if (event->button() == Qt::MouseButton::LeftButton) {
@@ -220,7 +220,7 @@ void clipitem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
 
 }
-void clipitem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     auto curMime = getMimeData(m_mimeKey, true);
     //drag move
@@ -260,7 +260,7 @@ void clipitem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
 
 }
-void clipitem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void ClipItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     auto xDelta = event->scenePos().x() - m_prePoint.x();
     auto yDelta = event->scenePos().y() - m_prePoint.y();
@@ -289,13 +289,13 @@ void clipitem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     }
 
 }
-void clipitem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void ClipItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     m_isOnHover = true;
     checkExpandHandle(boundingRect());
     QGraphicsItem::hoverEnterEvent(event);
 }
-void clipitem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void ClipItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     m_isOnHover = false;
     if (scene() != nullptr) {
@@ -318,12 +318,12 @@ void clipitem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
             }
         }
         prepareGeometryChange();
-        scene()->update(timeline()->getViewPort(timelinewidget::RightBottom));
+        scene()->update(timeline()->getViewPort(TimelineWidget::RightBottom));
     }
 
     QGraphicsItem::hoverLeaveEvent(event);
 }
-ulong clipitem::getStartPosAfterDragMove(clipmime &curMime)
+ulong ClipItem::getStartPosAfterDragMove(ClipMime &curMime)
 {
     auto xDelta = m_shadowRect.x() - m_originRect.x();
     if (curMime.isDefaultData()) {
@@ -337,7 +337,7 @@ ulong clipitem::getStartPosAfterDragMove(clipmime &curMime)
            (curX + curFrameMoved > timeline()->maxDuration() ?
             timeline()->maxDuration() : curX + curFrameMoved);
 }
-void clipitem::clipDrag(int x, int y)
+void ClipItem::clipDrag(int x, int y)
 {
     m_shouldIgnoreMultiTrackAdd = false;
     m_multiSelectionPrefixedTrackKey = "";
@@ -357,7 +357,7 @@ void clipitem::clipDrag(int x, int y)
         }
     }
 }
-clipmime clipitem::stopClipDrag(bool isMultiMode)
+ClipMime ClipItem::stopClipDrag(bool isMultiMode)
 {
     if (this->scene() == nullptr)
         return {};
@@ -370,8 +370,7 @@ clipmime clipitem::stopClipDrag(bool isMultiMode)
         this->scene()->removeItem(m_shadow);
 
         curMime.startPos = getStartPosAfterDragMove(curMime);
-        if(isMultiMode)
-        {
+        if (isMultiMode) {
             timeline()->alterClipData(curMime.id, m_trackMimeKey, curMime);
             if (!m_isRemoved) {
                 forceUpdate();
@@ -379,14 +378,15 @@ clipmime clipitem::stopClipDrag(bool isMultiMode)
             }
             return curMime;
         }
-        trackmime readyTrackData;
+        TrackMime readyTrackData;
         // using center position to determine which track to insert
         bool isChangeTrack = false;
         auto originTrackKey = curMime.trackId;
         auto isMultiSelect = timeline()->m_selectedClips.count() > 1;
         auto changeTrackOpt = [&]() -> void
         {
-            timeline()->getTrackByVerticalPos((mapFromScene(m_shadowRect).boundingRect().y() + TRACK_HEIGHT / 2.0), readyTrackData);
+            timeline()->getTrackByVerticalPos((mapFromScene(m_shadowRect).boundingRect().y() + TRACK_HEIGHT / 2.0),
+                                              readyTrackData);
             if (!readyTrackData.isDefaultData()) {
                 isChangeTrack = true;
                 curMime.trackId = readyTrackData.id;
@@ -409,12 +409,12 @@ clipmime clipitem::stopClipDrag(bool isMultiMode)
     }
     return curMime;
 }
-void clipitem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
+void ClipItem::mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event)
 {
     timeline()->setSelectedClip(m_mimeKey, timeline()->isSelected(m_mimeKey));
     QGraphicsItem::mouseDoubleClickEvent(event);
 }
-void clipitem::forceUpdate()
+void ClipItem::forceUpdate()
 {
 
     if (m_isRemoved)
@@ -423,36 +423,36 @@ void clipitem::forceUpdate()
     update();
     //checkExpandHandle(boundingRect());
 }
-bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKey)
+bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKey)
 {
-    QList<trackmime> curTracksData(timeline()->m_timelineData.tracks.begin(),
+    QList<TrackMime> curTracksData(timeline()->m_timelineData.tracks.begin(),
                                    timeline()->m_timelineData.tracks.end());
-    auto curRange = cliprange(curTracksData);
+    auto curRange = ClipRange(curTracksData);
     curRange.oneClipChanged(curMime, originTrackKey);
     QList<QString> collisionItems;
     auto hasCollision = curRange.hasCollision(curMime.trackId, curMime.id, collisionItems);
     if (!hasCollision)
         return false;
-    trackmime trackData;
+    TrackMime trackData;
     if (!timeline()->getTrackData(trackData, originTrackKey.isEmpty() ? m_trackMimeKey : curMime.trackId)) {
         return false;
     }
-    auto collisionClips = trackData.getClips([](const clipmime &curItem) -> bool
+    auto collisionClips = trackData.getClips([](const ClipMime &curItem) -> bool
                                              { return !(timeline()->isSelected(curItem.id)); });
-    QList<clipmime> headClips, tailClips;
-    extensionMethods::sourcesExtension<clipmime>::classification(collisionClips,
-                                                                 [&curMime](const clipmime &item) -> bool
+    QList<ClipMime> headClips, tailClips;
+    ExtensionMethods::SourcesExtension<ClipMime>::classification(collisionClips,
+                                                                 [&curMime](const ClipMime &item) -> bool
                                                                  {
                                                                      return item.startPos <= curMime.startPos;
                                                                  },
                                                                  headClips,
                                                                  tailClips);
     //let these clips in order
-    std::sort(headClips.begin(), headClips.end(), [](const clipmime &l, const clipmime &r) -> bool
+    std::sort(headClips.begin(), headClips.end(), [](const ClipMime &l, const ClipMime &r) -> bool
     {
         return l.startPos < r.startPos;
     });
-    std::sort(tailClips.begin(), tailClips.end(), [](const clipmime &l, const clipmime &r) -> bool
+    std::sort(tailClips.begin(), tailClips.end(), [](const ClipMime &l, const ClipMime &r) -> bool
     {
         return l.startPos < r.startPos;
     });
@@ -469,15 +469,14 @@ bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKe
     else//single clip
     {
         //for head ,depart it,get the diffDelta with last clip.
-        auto collisionItem = extensionMethods::sourcesExtension<clipmime>::
+        auto collisionItem = ExtensionMethods::SourcesExtension<ClipMime>::
         lastOf(headClips,
-               [&collisionItems](const clipmime &curClip) -> bool
+               [&collisionItems](const ClipMime &curClip) -> bool
                {
-                   return collisionItems
-                       .contains(curClip.id);
+                   return collisionItems.contains(curClip.id);
                },
-               clipmime());
-        clipmime left, right;
+               ClipMime());
+        ClipMime left, right;
         if (!collisionItem.isDefaultData()) {
             if (collisionItem.cutUp(curMime.startPos, left, right)) {
                 right.startPos = left.startPos + left.duration + curMime.duration;
@@ -490,7 +489,6 @@ bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKe
 
         //for tail ,if front space is not enough,move tail clips.
         if (tailClips.count() > 0 && tailClips[0].startPos < curMime.startPos + curMime.duration) {
-//            auto tailDiff = (curMime.startPos + curMime.duration) - tailClips[0].startPos;
             for (int i = 0; i < tailClips.count(); i++) {
 
                 tailClips[i].startPos += (curMime.duration + diffDelta);
@@ -500,7 +498,7 @@ bool clipitem::checkForCollision(clipmime &curMime, const QString &originTrackKe
         return true;
     }
 }
-void clipitem::checkExpandHandle(const QRectF &clipRect)
+void ClipItem::checkExpandHandle(const QRectF &clipRect)
 {
     //check for expand handle
     if (m_trackMimeKey.isEmpty() || m_leftHandle == nullptr || m_rightHandle == nullptr)
@@ -537,45 +535,47 @@ void clipitem::checkExpandHandle(const QRectF &clipRect)
         m_rightHandle->forceUpdate();
     }
 }
-bool clipitem::preCheckForCollision(clipmime& mime, trackmime &targetTrack)
+bool ClipItem::preCheckForCollision(ClipMime &mime, TrackMime &targetTrack)
 {
     auto curMime = getMimeData(m_mimeKey);
     curMime.startPos = getStartPosAfterDragMove(curMime);
     bool isChangeTrack = false;
     auto originTrackKey = curMime.trackId;
-    auto currentCollisionItems = extensionMethods::sourcesExtension<QGraphicsItem*>::where(m_shadow->collidingItems(), [&](QGraphicsItem* curItem)->bool
-    {
-        auto clipItem = dynamic_cast<clipitem*>(curItem);
-        if(clipItem==nullptr)
-            return false;
-        return !timeline()->isSelected(clipItem->m_mimeKey);
-    });
+    auto currentCollisionItems = ExtensionMethods::SourcesExtension<QGraphicsItem *>::where(m_shadow->collidingItems(),
+                                                                                            [&](QGraphicsItem *curItem) -> bool
+                                                                                            {
+                                                                                                auto clipItem =
+                                                                                                    dynamic_cast<ClipItem *>(curItem);
+                                                                                                if (clipItem == nullptr)
+                                                                                                    return false;
+                                                                                                return !timeline()
+                                                                                                    ->isSelected(
+                                                                                                        clipItem
+                                                                                                            ->m_mimeKey);
+                                                                                            });
 
-    timeline()->getTrackByVerticalPos(mapFromScene(m_shadowRect).boundingRect().y()+ TRACK_HEIGHT / 2.0
-                                      , targetTrack);
+    timeline()->getTrackByVerticalPos(mapFromScene(m_shadowRect).boundingRect().y() + TRACK_HEIGHT / 2.0, targetTrack);
     if (!targetTrack.isDefaultData()) {
-            isChangeTrack = true;
-            curMime.trackId = targetTrack.id;
-        }
-    QList<trackmime> curTracksData(timeline()->m_timelineData.tracks.begin(),
+        isChangeTrack = true;
+        curMime.trackId = targetTrack.id;
+    }
+    QList<TrackMime> curTracksData(timeline()->m_timelineData.tracks.begin(),
                                    timeline()->m_timelineData.tracks.end());
 
-    auto curRange = cliprange(curTracksData);
+    auto curRange = ClipRange(curTracksData);
     curRange.oneClipChanged(curMime, originTrackKey);
     QList<QString> collisionItems;
-    mime= curMime;
+    mime = curMime;
     curRange.hasCollision(curMime.trackId, curMime.id, collisionItems);
-    bool res =collisionItems.count()>0;
-    if(collisionItems.count()>0)
-    {
-        res = std::any_of(collisionItems.begin(),collisionItems.end(),[&](const QString& str)->bool
+    bool res = collisionItems.count() > 0;
+    if (collisionItems.count() > 0) {
+        res = std::any_of(collisionItems.begin(), collisionItems.end(), [&](const QString &str) -> bool
         {
-           return !timeline()->isSelected(str);
+            return !timeline()->isSelected(str);
         });
     }
-    if(res)
-    {
-        qDebug()<<"current with collision";
+    if (res) {
+        qDebug() << "current with collision";
     }
     return res;
 }

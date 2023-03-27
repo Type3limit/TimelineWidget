@@ -7,8 +7,8 @@
 #include "timelinewidget.h"
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
-#define TimelineInstance() (GET_POINTER<timelinewidget>())
-anchorbodyitem::anchorbodyitem(QGraphicsItem *parent)
+#define TimelineInstance() (GET_POINTER<TimelineWidget>())
+AnchorBodyItem::AnchorBodyItem(QGraphicsItem *parent)
     : QGraphicsObject(parent)
 {
     setFlags(
@@ -16,30 +16,30 @@ anchorbodyitem::anchorbodyitem(QGraphicsItem *parent)
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
     setCacheMode(QGraphicsItem::CacheMode::DeviceCoordinateCache);
-    connect(TimelineInstance(), &timelinewidget::FrameTickChanged, this, [&](auto data) -> void
+    connect(TimelineInstance(), &TimelineWidget::FrameTickChanged, this, [&](auto data) -> void
     { this->prepareGeometryChange(); });
 }
-QRectF anchorbodyitem::boundingRect() const
+QRectF AnchorBodyItem::boundingRect() const
 {
 
     auto curXPos = ceil((double)(TimelineInstance()->curPos())
                             / (double)(TimelineInstance()->frameTick()) * MIN_TICK_WIDTH);
-    double curHeight = TimelineInstance()->getArea(timelinewidget::Area::RightBottom).height();
+    double curHeight = TimelineInstance()->getArea(TimelineWidget::Area::RightBottom).height();
     auto actualHeight = (double)TimelineInstance()->m_timelineData.tracks.size() * TRACK_HEIGHT;
     actualHeight =
         actualHeight < curHeight? curHeight - WIDGET_MARGIN * 2
                                 : actualHeight;
     return {curXPos - 0.5, 0, TIMELINE_ANCHOR_BODY_WIDTH, actualHeight};
 }
-void anchorbodyitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AnchorBodyItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    if (!CHECK_POINTER<timelinewidget>())
+    if (!CHECK_POINTER<TimelineWidget>())
         return;
     auto curXPos = ceil((double)(TimelineInstance()->curPos())
         / (double)(TimelineInstance()->frameTick()) * MIN_TICK_WIDTH);
-    double curHeight = TimelineInstance()->getArea(timelinewidget::Area::RightBottom).height();
+    double curHeight = TimelineInstance()->getArea(TimelineWidget::Area::RightBottom).height();
     auto actualHeight = (double)TimelineInstance()->m_timelineData.tracks.size() * TRACK_HEIGHT;
     actualHeight =
         actualHeight < curHeight? curHeight - WIDGET_MARGIN * 2
@@ -48,21 +48,21 @@ void anchorbodyitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     painter->setBrush(QBrush(ANCHOR_COLOR));
     painter->drawRect(QRectF(curXPos , 0, 1, (int)actualHeight));
 }
-void anchorbodyitem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void AnchorBodyItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     setCursor(QCursor(Qt::CursorShape::SizeHorCursor));
     QGraphicsItem::hoverEnterEvent(event);
 }
-void anchorbodyitem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void AnchorBodyItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     setCursor(QCursor());
     QGraphicsItem::hoverLeaveEvent(event);
 }
-void anchorbodyitem::OnTimelinePosChanged(ulong pos)
+void AnchorBodyItem::onTimelinePosChanged(ulong pos)
 {
     prepareGeometryChange();
 }
-void anchorbodyitem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void AnchorBodyItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (!m_bIsStartDrag) {
         event->ignore();
@@ -74,10 +74,10 @@ void anchorbodyitem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsItem::mousePressEvent(event);
     }
 }
-void anchorbodyitem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void AnchorBodyItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (m_bIsStartDrag) {
-        if (!CHECK_POINTER<timelinewidget>())
+        if (!CHECK_POINTER<TimelineWidget>())
             return;
         event->accept();
         auto deltaOfX = event->scenePos().x() / scene()->width();
@@ -91,7 +91,7 @@ void anchorbodyitem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsItem::mouseMoveEvent(event);
     }
 }
-void anchorbodyitem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void AnchorBodyItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if (m_bIsStartDrag) {
         m_bIsStartDrag = false;
@@ -99,7 +99,7 @@ void anchorbodyitem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     QGraphicsItem::mouseReleaseEvent(event);
 }
-void anchorbodyitem::forceUpdate()
+void AnchorBodyItem::forceUpdate()
 {
     prepareGeometryChange();
     update();

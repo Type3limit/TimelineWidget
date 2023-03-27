@@ -30,15 +30,15 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="timelinewidget" name="widget" native="true"/>
+    <widget class="TimelineWidget" name="widget" native="true"/>
    </item>
   </layout>
  </widget>
  <customwidgets>
   <customwidget>
-   <class>timelinewidget</class>
+   <class>TimelineWidget</class>
    <extends>QWidget</extends>
-   <header>timelinewidget.h</header>
+   <header>TimelineWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

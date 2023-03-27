@@ -4,11 +4,11 @@
 
 #include "Clip/shadowclipitem.h"
 #include <QPainter>
-void shadowclipitem::setDrawRect(const QRectF &rec)
+void ShadowClipItem::setDrawRect(const QRectF &rec)
 {
     m_drawRect = rec;
 }
-void shadowclipitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ShadowClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -20,11 +20,11 @@ void shadowclipitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     path.addRoundedRect(m_drawRect,5,5);
     painter->fillPath(path,QBrush(QColor(157,171,194,128)));
 }
-void shadowclipitem::forceUpdate()
+void ShadowClipItem::forceUpdate()
 {
     prepareGeometryChange();
 }
-QRectF shadowclipitem::boundingRect() const
+QRectF ShadowClipItem::boundingRect() const
 {
     return m_drawRect;
 }

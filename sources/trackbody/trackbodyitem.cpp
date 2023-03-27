@@ -6,27 +6,27 @@
 #include "timelinedefination.h"
 #include <QStyleOptionGraphicsItem>
 #include "timelinewidget.h"
-#define  TimelineInstance() (GET_POINTER<timelinewidget>())
-trackbodyitem::trackbodyitem(QGraphicsItem *parent)
+#define  TimelineInstance() (GET_POINTER<TimelineWidget>())
+TrackBodyItem::TrackBodyItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)
 {
 
 }
-trackbodyitem::trackbodyitem(const trackmime &curData, QGraphicsItem *parent)
+TrackBodyItem::TrackBodyItem(const TrackMime &curData, QGraphicsItem *parent)
     :
     QGraphicsItem(parent)
 {
     m_mimeKey = curData.id;
 }
 
-trackbodyitem::~trackbodyitem()
+TrackBodyItem::~TrackBodyItem()
 {
-    extensionMethods::sourcesExtension<QString>::eachBy(m_clips.keys(), [&](const QString &key) -> void
+    ExtensionMethods::SourcesExtension<QString>::eachBy(m_clips.keys(), [&](const QString &key) -> void
     {
         auto curItem = m_clips[key];
         SAFE_DELETE(curItem);
     });
-    std::for_each(m_removeLists.begin(), m_removeLists.end(),[&](clipitem* curItem)->void
+    std::for_each(m_removeLists.begin(), m_removeLists.end(),[&](ClipItem* curItem)->void
     {
         SAFE_DELETE(curItem);
     });
@@ -34,21 +34,21 @@ trackbodyitem::~trackbodyitem()
     m_clips.clear();
 }
 
-trackmime trackbodyitem::getMimeData() const
+TrackMime TrackBodyItem::getMimeData() const
 {
-    trackmime data;
+    TrackMime data;
     TimelineInstance()->getTrackData(data, m_mimeKey);
     return data;
 }
-void trackbodyitem::forceUpdate()
+void TrackBodyItem::forceUpdate()
 {
     prepareGeometryChange();
 }
-QRectF trackbodyitem::boundingRect() const
+QRectF TrackBodyItem::boundingRect() const
 {
     auto trackBodyHeight = TimelineInstance()->getTrackCount() * TRACK_HEIGHT;
     auto mime = getMimeData();
-    auto curArea = TimelineInstance()->getArea(timelinewidget::RightBottom);
+    auto curArea = TimelineInstance()->getArea(TimelineWidget::RightBottom);
     auto yIndex = (double)mime.index * TRACK_HEIGHT;
     if (trackBodyHeight < curArea.height())//y center alignment
     {
@@ -58,7 +58,7 @@ QRectF trackbodyitem::boundingRect() const
             static_cast<qreal>((TimelineInstance()->maxDuration() / TimelineInstance()->frameTick()) * MIN_TICK_WIDTH),
             TRACK_HEIGHT};
 }
-void trackbodyitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TrackBodyItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -66,7 +66,7 @@ void trackbodyitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     auto countOfTrack = TimelineInstance()->getTrackCount();
     auto trackBodyHeight = countOfTrack * TRACK_HEIGHT;
     auto mime = getMimeData();
-    auto curArea = TimelineInstance()->getArea(timelinewidget::RightBottom);
+    auto curArea = TimelineInstance()->getArea(TimelineWidget::RightBottom);
     double yIndex = mime.index * TRACK_HEIGHT;
     auto maxWidth = (TimelineInstance()->maxDuration() / TimelineInstance()->frameTick()) * MIN_TICK_WIDTH;
     if (trackBodyHeight < curArea.height())//y center alignment
@@ -77,18 +77,18 @@ void trackbodyitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->setBrush(QBrush((mime.index % 2 == 1) ? BACK_LIGHT_COLOR : BACK_DEEP_COLOR));
     painter->drawRect(curArea.left(), yIndex, maxWidth, TRACK_HEIGHT);
 }
-void trackbodyitem::addClipItem(const QString &itemKey)
+void TrackBodyItem::addClipItem(const QString &itemKey)
 {
     if (itemKey.isEmpty())
         return;
-    auto curItem = new clipitem(itemKey);
+    auto curItem = new ClipItem(itemKey);
     curItem->insertToTrack(m_mimeKey);
     m_clips.insert(itemKey, curItem);
     curItem->m_isRemoved = false;
     this->scene()->addItem(curItem);
     TimelineInstance()->updateSelectedSourceCache(itemKey,curItem);
 }
-void trackbodyitem::removeClipItem(const QString &itemKey)
+void TrackBodyItem::removeClipItem(const QString &itemKey)
 {
     if (!m_clips.contains(itemKey))
         return;
@@ -110,13 +110,13 @@ void trackbodyitem::removeClipItem(const QString &itemKey)
     }
     m_removeLists.push_back(curItem);
 }
-void trackbodyitem::updateClipItem(const QString &itemKey)
+void TrackBodyItem::updateClipItem(const QString &itemKey)
 {
     if (!m_clips.contains(itemKey))
         return;
     m_clips[itemKey]->forceUpdate();
 }
-clipitem* trackbodyitem::getClipItem(const QString &itemKey)
+ClipItem* TrackBodyItem::getClipItem(const QString &itemKey)
 {
     if (!m_clips.contains(itemKey))
         return nullptr;

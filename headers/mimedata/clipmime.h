@@ -8,7 +8,7 @@
 #include <utility>
 #include "timelinedefination.h"
 #include "jsonserialization.h"
-struct clipmime
+struct ClipMime
 {
     //clip id
     QString id = "";
@@ -29,8 +29,8 @@ struct clipmime
     ///clip extension info(stay temporarily)
     QString extension;
 
-    clipmime() = default;
-    clipmime(const clipmime &other)
+    ClipMime() = default;
+    ClipMime(const ClipMime &other)
     {
         id = other.id;
         trackId = other.trackId;
@@ -41,7 +41,7 @@ struct clipmime
         sourceFile = other.sourceFile;
         extension = other.extension;
     }
-    clipmime(const QString& id, const QString& trackId, ulong startPos, ulong duration, SpecificType type, const QString& groupId="", const QString& sourceFile="", const QString& extension="")
+    ClipMime(const QString& id, const QString& trackId, ulong startPos, ulong duration, SpecificType type, const QString& groupId="", const QString& sourceFile="", const QString& extension="")
     {
         this->id = id;
         this->trackId = trackId;
@@ -54,11 +54,11 @@ struct clipmime
     }
 
 #pragma region overloadOperator
-    bool operator<(const clipmime &other) const
+    bool operator<(const ClipMime &other) const
     {
         return this->startPos < other.startPos;
     }
-    clipmime& operator=(const clipmime &other)
+    ClipMime& operator=(const ClipMime &other)
     {
         id = other.id;
         trackId = other.trackId;
@@ -70,7 +70,7 @@ struct clipmime
         extension = other.extension;
         return *this;
     }
-    bool operator==(const clipmime &other) const
+    bool operator==(const ClipMime &other) const
     {
         return std::tie(id, trackId, type, startPos, duration, sourceFile, groupId, extension) ==
             std::tie(other.id,
@@ -86,7 +86,7 @@ struct clipmime
 #pragma region func
     QString toString() const
     {
-        return "clipmime{id:" + this->id + " track id:" + this->trackId + " type:"
+        return "ClipMime{id:" + this->id + " track id:" + this->trackId + " type:"
             + QString::number(this->type) + " startPos:" + QString::number(this->startPos)
             + " duration:" + QString::number(this->duration) + " group id:" + this->groupId
             + " source file:" + this->sourceFile + " extension:" + this->extension + "}";
@@ -96,18 +96,18 @@ struct clipmime
     {
         return isDefaultData(*this);
     }
-    static bool isDefaultData(const clipmime &other)
+    static bool isDefaultData(const ClipMime &other)
     {
         return (0 == (other.id.length())) && (other.trackId.length() == 0) && (other.type == SpecificType::None)
             && other.startPos == 0 && other.duration == 0;
     }
-    bool cutUp(ulong pos, clipmime &left, clipmime &right)
+    bool cutUp(ulong pos, ClipMime &left, ClipMime &right)
     {
         if(startPos>=pos||startPos+duration<=pos)
             return false;
 
-        left = clipmime(*this);
-        right =clipmime(*this);
+        left = ClipMime(*this);
+        right =ClipMime(*this);
         left.id = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
         left.startPos = startPos;
         left.duration = ((int64_t)pos-(int64_t)left.startPos)<1?1:((int64_t)pos-(int64_t)left.startPos);
@@ -122,5 +122,5 @@ struct clipmime
 #pragma endregion
 };
 
-REFLECTION(clipmime, id, trackId, startPos, duration, type, groupId, sourceFile, extension);
+REFLECTION(ClipMime, id, trackId, startPos, duration, type, groupId, sourceFile, extension);
 #endif //CLIPMIME_H

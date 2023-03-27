@@ -9,66 +9,66 @@
 #include "timelinewidget.h"
 #include <QMap>
 #include <QtMath>
-#define TimelineInstance() (GET_POINTER<timelinewidget>())
+#define TimelineInstance() (GET_POINTER<TimelineWidget>())
 
-typedef extensionMethods::sourcesExtension<QGraphicsItem *> itemsEx;
+typedef ExtensionMethods::SourcesExtension<QGraphicsItem *> itemsEx;
 
-trackbodydrawingview::trackbodydrawingview(QWidget *parent)
+TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     : SelfContainedSceneView(parent)
 {
-    m_anchorBody = new anchorbodyitem();
-    m_selectObj = new trackselectionitem();
+    m_anchorBody = new AnchorBodyItem();
+    m_selectObj = new TrackSelectionItem();
     scene()->addItem(m_anchorBody);
     m_anchorBody->setZValue(999);//Anchor TopMost
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    connect(TimelineInstance(), &timelinewidget::TrackUpdated, this, &trackbodydrawingview::OnTrackHeadUpdate);
-    connect(horizontalScrollBar(), &QScrollBar::sliderMoved, this, &trackbodydrawingview::ScrolledTo);
-    connect(verticalScrollBar(),&QScrollBar::sliderMoved,this,&trackbodydrawingview::VScrolledTo);
-    connect(TimelineInstance(), &timelinewidget::PositionChanged,
-            this, &trackbodydrawingview::onCursorPosChanged, Qt::ConnectionType::QueuedConnection);
-    connect(TimelineInstance(), &timelinewidget::TrackClipChanged, this,
-            &trackbodydrawingview::ClipChanged, Qt::ConnectionType::QueuedConnection);
-    connect(TimelineInstance(), &timelinewidget::ClipUpdated, this,
-            &trackbodydrawingview::singleClipChanged, Qt::ConnectionType::AutoConnection);
+    connect(TimelineInstance(), &TimelineWidget::TrackUpdated, this, &TrackBodyDrawingView::onTrackHeadUpdate);
+    connect(horizontalScrollBar(), &QScrollBar::sliderMoved, this, &TrackBodyDrawingView::scrolledTo);
+    connect(verticalScrollBar(),&QScrollBar::sliderMoved,this, &TrackBodyDrawingView::vScrolledTo);
+    connect(TimelineInstance(), &TimelineWidget::PositionChanged,
+            this, &TrackBodyDrawingView::onCursorPosChanged, Qt::ConnectionType::QueuedConnection);
+    connect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this,
+            &TrackBodyDrawingView::clipChanged, Qt::ConnectionType::QueuedConnection);
+    connect(TimelineInstance(), &TimelineWidget::ClipUpdated, this,
+            &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::AutoConnection);
     setMouseTracking(true);
 
 
 
 
 }
-trackbodydrawingview::~trackbodydrawingview()
+TrackBodyDrawingView::~TrackBodyDrawingView()
 {
     SAFE_DELETE(m_anchorBody)
-    extensionMethods::sourcesExtension<QString>::eachBy(m_bodyItems.keys(), [&](const QString &key) -> void
+    ExtensionMethods::SourcesExtension<QString>::eachBy(m_bodyItems.keys(), [&](const QString &key) -> void
     {
         auto curItem = m_bodyItems[key];
         SAFE_DELETE(curItem)
     });
     m_bodyItems.clear();
 }
-void trackbodydrawingview::ScrolledTo(int pos)
+void TrackBodyDrawingView::scrolledTo(int pos)
 {
     update(getViewPortRect().toRect());
     if(m_anchorBody)
     {
         m_anchorBody->forceUpdate();
     }
-    emit ScrollChanged(pos);
+    emit scrollChanged(pos);
 }
 
-void trackbodydrawingview::VScrolledTo(int pos)
+void TrackBodyDrawingView::vScrolledTo(int pos)
 {
     update(getViewPortRect().toRect());
     if(m_anchorBody)
     {
         m_anchorBody->forceUpdate();
     }
-    emit VScollChanged(pos);
+    emit vScollChanged(pos);
 }
 
 
-void trackbodydrawingview::wheelEvent(QWheelEvent *event)
+void TrackBodyDrawingView::wheelEvent(QWheelEvent *event)
 {
     if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
         QGraphicsView::wheelEvent(event);
@@ -77,7 +77,7 @@ void trackbodydrawingview::wheelEvent(QWheelEvent *event)
     auto curRect = getViewPortRect();
     update(QRect((int)curRect.x(), (int)curRect.y(), (int)curRect.width(), (int)curRect.height()));
 }
-void trackbodydrawingview::mouseMoveEvent(QMouseEvent *evt)
+void TrackBodyDrawingView::mouseMoveEvent(QMouseEvent *evt)
 {
     if (m_bIsRightButtonPressed) {
         auto deltaX = evt->pos().x() - m_prePos.x();
@@ -90,8 +90,8 @@ void trackbodydrawingview::mouseMoveEvent(QMouseEvent *evt)
         y = y < 0 ? 0 : (y > maxY ? maxY : y);
         horizontalScrollBar()->setValue(x);
         verticalScrollBar()->setValue(y);
-        emit ScrollChanged(x);
-        emit VScrolledTo(y);
+        emit scrollChanged(x);
+        emit vScrolledTo(y);
         m_prePos = evt->pos();
         evt->accept();
     }
@@ -122,7 +122,7 @@ void trackbodydrawingview::mouseMoveEvent(QMouseEvent *evt)
         if (XDirection != 0) {
             auto cur = horizontalScrollBar()->value();
             horizontalScrollBar()->setValue(cur - (distance * XDirection));
-            emit ScrolledTo(cur - (distance * XDirection));
+            emit scrolledTo(cur - (distance * XDirection));
         }
         if (YDirection != 0) {
             auto cur = verticalScrollBar()->value();
@@ -134,7 +134,7 @@ void trackbodydrawingview::mouseMoveEvent(QMouseEvent *evt)
 
     QGraphicsView::mouseMoveEvent(evt);
 }
-void trackbodydrawingview::mousePressEvent(QMouseEvent *event)
+void TrackBodyDrawingView::mousePressEvent(QMouseEvent *event)
 {
     if (!m_bIsRightButtonPressed && event->button() == Qt::RightButton) {
         m_bIsRightButtonPressed = true;
@@ -146,9 +146,9 @@ void trackbodydrawingview::mousePressEvent(QMouseEvent *event)
         auto curItems = items(event->pos());
         auto Clips = itemsEx::where(curItems, [&](QGraphicsItem *itr) -> bool
         {
-            return dynamic_cast<clipitem *>(itr) != nullptr;
+            return dynamic_cast<ClipItem *>(itr) != nullptr;
         });
-        bool isAnchor = curItems.size() == 1 && dynamic_cast<anchorbodyitem *>(curItems.first()) != nullptr;
+        bool isAnchor = curItems.size() == 1 && dynamic_cast<AnchorBodyItem *>(curItems.first()) != nullptr;
 
         if (!isAnchor && Clips.count() <= 0) {
             m_bIsMultiSelectionMode = true;
@@ -166,7 +166,7 @@ void trackbodydrawingview::mousePressEvent(QMouseEvent *event)
     }
 
 }
-void trackbodydrawingview::mouseReleaseEvent(QMouseEvent *event)
+void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
 {
     if (m_bIsRightButtonPressed && event->button() == Qt::RightButton) {
         m_bIsRightButtonPressed = false;
@@ -182,10 +182,10 @@ void trackbodydrawingview::mouseReleaseEvent(QMouseEvent *event)
             selectionRect = QRectF(m_selectionEnd, m_selectionStart);
 
         auto curSelectionItem = this->scene()->items(selectionRect, Qt::IntersectsItemBoundingRect);
-        QList<clipitem *> curSelectedClip;
+        QList<ClipItem *> curSelectedClip;
         std::for_each(curSelectionItem.begin(), curSelectionItem.end(), [&](QGraphicsItem *curItem) -> void
         {
-            auto clipItem = dynamic_cast<clipitem *>(curItem);
+            auto clipItem = dynamic_cast<ClipItem *>(curItem);
             if (curItem == nullptr)
                 return;
             curSelectedClip.push_back(clipItem);
@@ -198,39 +198,39 @@ void trackbodydrawingview::mouseReleaseEvent(QMouseEvent *event)
         QGraphicsView::mouseReleaseEvent(event);
     }
 }
-void trackbodydrawingview::scrollToCursor()
+void TrackBodyDrawingView::scrollToCursor()
 {
-    auto curArea = TimelineInstance()->getArea(timelinewidget::RightBottom);
+    auto curArea = TimelineInstance()->getArea(TimelineWidget::RightBottom);
     auto curLeftPosOfCursor =
         ((double)TimelineInstance()->curPos() / (double)TimelineInstance()->frameTick()) * MIN_TICK_WIDTH;
     auto leftPos = (curLeftPosOfCursor - curArea.width() / 2);
     leftPos = leftPos < 0 ? 0 : leftPos;
     horizontalScrollBar()->setValue((int)leftPos);
-    emit ScrollChanged((int)(leftPos));
+    emit scrollChanged((int)(leftPos));
     update(getViewPortRect().toRect());
     auto graphics = items(getViewPortRect().toRect());
     std::for_each(graphics.begin(), graphics.end(), [](QGraphicsItem *curItem) -> void
     {
-        auto clip = dynamic_cast<clipitem *>(curItem);
+        auto clip = dynamic_cast<ClipItem *>(curItem);
         if (clip == nullptr)
             return;
         clip->forceUpdate();
     });
 
 }
-bool trackbodydrawingview::addTrackBody(const trackmime &originData)
+bool TrackBodyDrawingView::addTrackBody(const TrackMime &originData)
 {
     auto key = originData.id;
     if (m_bodyItems.contains(key)) {
         qDebug() << "add track body failed! Already has the same key:" << key;
         return false;
     }
-    auto curData = new trackbodyitem(originData);
+    auto curData = new TrackBodyItem(originData);
     m_bodyItems.insert(key, curData);
     scene()->addItem(curData);
     return true;
 }
-bool trackbodydrawingview::deleteTrackBody(const QString &key)
+bool TrackBodyDrawingView::deleteTrackBody(const QString &key)
 {
     if (m_bodyItems.contains(key)) {
         auto org = m_bodyItems[key];
@@ -242,13 +242,13 @@ bool trackbodydrawingview::deleteTrackBody(const QString &key)
     qDebug() << "delete track head failed!,key:[" << key << "]is not exist";
     return false;
 }
-trackbodyitem *trackbodydrawingview::getTrackBody(const QString &key)
+TrackBodyItem *TrackBodyDrawingView::getTrackBody(const QString &key)
 {
     if (!m_bodyItems.contains(key))
         return nullptr;
     return m_bodyItems[key];
 }
-trackbodyitem *trackbodydrawingview::updateTrackBody(const QString &key, trackbodyitem *curData)
+TrackBodyItem *TrackBodyDrawingView::updateTrackBody(const QString &key, TrackBodyItem *curData)
 {
     if (!m_bodyItems.contains(key))
         return nullptr;
@@ -259,19 +259,19 @@ trackbodyitem *trackbodydrawingview::updateTrackBody(const QString &key, trackbo
     }
     return m_bodyItems[key];
 }
-void trackbodydrawingview::OnTrackHeadUpdate(const QString &key)
+void TrackBodyDrawingView::onTrackHeadUpdate(const QString &key)
 {
     if (!m_bodyItems.contains(key))
         return;
     m_bodyItems[key]->forceUpdate();
 }
-void trackbodydrawingview::ScrollToPos(int pos)
+void TrackBodyDrawingView::scrollToPos(int pos)
 {
     horizontalScrollBar()->setValue(pos);
 
 }
 
-void trackbodydrawingview::ClipChanged(const QString &trackKey, const QString &clipKey, int mode)
+void TrackBodyDrawingView::clipChanged(const QString &trackKey, const QString &clipKey, int mode)
 {
     auto curTrack = getTrackBody(trackKey);
     if (!curTrack)
@@ -285,7 +285,7 @@ void trackbodydrawingview::ClipChanged(const QString &trackKey, const QString &c
         update();
     }
 }
-void trackbodydrawingview::singleClipChanged(const QString &trackKey, const QString &clipKey)
+void TrackBodyDrawingView::singleClipChanged(const QString &trackKey, const QString &clipKey)
 {
     auto curTrack = getTrackBody(trackKey);
     if (!curTrack)
@@ -293,7 +293,7 @@ void trackbodydrawingview::singleClipChanged(const QString &trackKey, const QStr
     curTrack->updateClipItem(clipKey);
     update(getViewPortRect().toRect());
 }
-void trackbodydrawingview::setDrawingAreaSize(int width, int height)
+void TrackBodyDrawingView::setDrawingAreaSize(int width, int height)
 {
     if(m_anchorBody)
     {
@@ -301,7 +301,7 @@ void trackbodydrawingview::setDrawingAreaSize(int width, int height)
     }
     SelfContainedSceneView::setDrawingAreaSize(width, height);
 }
-void trackbodydrawingview::emptyTracks()
+void TrackBodyDrawingView::emptyTracks()
 {
     std::for_each(m_bodyItems.begin(), m_bodyItems.end(), [&](auto item) -> void
     {
@@ -311,13 +311,13 @@ void trackbodydrawingview::emptyTracks()
     });
     m_bodyItems.clear();
 }
-void trackbodydrawingview::onCursorPosChanged(ulong pos)
+void TrackBodyDrawingView::onCursorPosChanged(ulong pos)
 {
     update();
-    m_anchorBody->OnTimelinePosChanged(pos);
+    m_anchorBody->onTimelinePosChanged(pos);
 }
 
-int trackbodydrawingview::getVScroll()
+int TrackBodyDrawingView::getVScroll()
 {
     auto vBar = verticalScrollBar();//->y();
     return vBar->value();

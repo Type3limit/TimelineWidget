@@ -7,24 +7,24 @@
 #include "TrackHead/trackheaditem.h"
 #include "timelinewidget.h"
 #include <QStyleOptionGraphicsItem>
-#define TimelineInstance() (GET_POINTER<timelinewidget>())
-trackheaditem::trackheaditem(QGraphicsItem *parent)
+#define TimelineInstance() (GET_POINTER<TimelineWidget>())
+TrackHeadItem::TrackHeadItem(QGraphicsItem *parent)
     : QGraphicsItem(parent)
 {
 }
-trackheaditem::trackheaditem(const trackmime &curData, QGraphicsItem *parent)
+TrackHeadItem::TrackHeadItem(const TrackMime &curData, QGraphicsItem *parent)
     : QGraphicsItem(parent)
 {
     m_mimeKey = curData.id;
 }
 
-QRectF trackheaditem::boundingRect() const
+QRectF TrackHeadItem::boundingRect() const
 {
-    if(extensionMethods::QStringExtension::isNullOrEmpty(m_mimeKey))
+    if(ExtensionMethods::QStringExtension::isNullOrEmpty(m_mimeKey))
         return {0,0,0,0};
     auto trackBodyHeight = TimelineInstance()->getTrackCount()* TRACK_HEIGHT;
     auto mime = getMimeData();
-    auto curArea = TimelineInstance()->getArea(timelinewidget::RightBottom);
+    auto curArea = TimelineInstance()->getArea(TimelineWidget::RightBottom);
     auto yIndex = (double)mime.index * TRACK_HEIGHT;
     if (trackBodyHeight < curArea.height())//y center alignment
     {
@@ -32,13 +32,13 @@ QRectF trackheaditem::boundingRect() const
     }
     return {0, static_cast<qreal>(yIndex), curArea.width(), TRACK_HEIGHT};
 }
-void trackheaditem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TrackHeadItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
     auto trackBodyHeight = TimelineInstance()->getTrackCount()* TRACK_HEIGHT;
     auto mime = getMimeData();
-    auto curArea = TimelineInstance()->getArea(timelinewidget::RightBottom);
+    auto curArea = TimelineInstance()->getArea(TimelineWidget::RightBottom);
     double yIndex = mime.index * TRACK_HEIGHT;
     if (trackBodyHeight < curArea.height())//y center alignment
     {
@@ -49,15 +49,15 @@ void trackheaditem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opt
     painter->fillRect(QRectF(0, yIndex, curArea.width(), TRACK_HEIGHT),QBrush(BACK_DEEP_COLOR));
     painter->setPen(QPen(Qt::white));
     //painter->drawText(QRectF(0, yIndex, curArea.width(), TRACK_HEIGHT),"预留");
-    //TODO:draw other button or what in track head
+    //TODO:draw other button or what else on track head
 }
-trackmime trackheaditem::getMimeData() const
+TrackMime TrackHeadItem::getMimeData() const
 {
-    trackmime data;
+    TrackMime data;
     TimelineInstance()->getTrackData(data,m_mimeKey);
     return data;
 }
-void trackheaditem::forceUpdate()
+void TrackHeadItem::forceUpdate()
 {
     prepareGeometryChange();
 }

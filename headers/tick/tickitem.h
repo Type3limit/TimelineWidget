@@ -10,11 +10,11 @@
 #include <QPaintEvent>
 #include <QGraphicsScene>
 #include "timelinedefination.h"
-class tickitem: public QGraphicsObject
+class TickItem: public QGraphicsObject
 {
     Q_OBJECT
 public:
-    explicit tickitem(QGraphicsItem*parent = nullptr): QGraphicsObject(parent)
+    explicit TickItem(QGraphicsItem*parent = nullptr): QGraphicsObject(parent)
     {
 
     }

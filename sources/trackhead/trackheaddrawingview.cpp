@@ -6,11 +6,11 @@
 #include <QGraphicsItem>
 #include "timelinedefination.h"
 #include "timelinewidget.h"
-#define TimelineInstance() (GET_POINTER<timelinewidget>())
-trackheaddrawingview::trackheaddrawingview(QWidget *parent)
+#define TimelineInstance() (GET_POINTER<TimelineWidget>())
+TrackHeadDrawingView::TrackHeadDrawingView(QWidget *parent)
     : SelfContainedSceneView(parent)
 {
-    connect(TimelineInstance(), &timelinewidget::TrackUpdated, this, &trackheaddrawingview::OnTrackHeadUpdate);
+    connect(TimelineInstance(), &TimelineWidget::TrackUpdated, this, &TrackHeadDrawingView::onTrackHeadUpdate);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     verticalScrollBar()->setStyleSheet(" QScrollBar:vertical\n"
@@ -70,7 +70,7 @@ trackheaddrawingview::trackheaddrawingview(QWidget *parent)
                                        "        background: none;\n"
                                        "    }");
 }
-bool trackheaddrawingview::addTrackHead(const trackmime& originData)
+bool TrackHeadDrawingView::addTrackHead(const TrackMime& originData)
 {
     //qDebug()<<"add head with key:"<<originData.id;
     auto key = originData.id;
@@ -79,12 +79,12 @@ bool trackheaddrawingview::addTrackHead(const trackmime& originData)
         qDebug()<<"add track head failed! Already has the same key:"<<key;
         return false;
     }
-    auto curData = new trackheaditem(originData);
+    auto curData = new TrackHeadItem(originData);
     m_headItems.insert(key,curData);
     scene()->addItem(curData);
     return true;
 }
-bool trackheaddrawingview::deleteTrackHead(const QString& key)
+bool TrackHeadDrawingView::deleteTrackHead(const QString& key)
 {
     if(m_headItems.contains(key)) {
 
@@ -97,13 +97,13 @@ bool trackheaddrawingview::deleteTrackHead(const QString& key)
     qDebug()<<"delete track head failed!key:["<<key<<"]is not exist";
     return false;
 }
-trackheaditem *trackheaddrawingview::getTrackHead(const QString& key)
+TrackHeadItem *TrackHeadDrawingView::getTrackHead(const QString& key)
 {
     if(!m_headItems.contains(key))
         return nullptr;
     return m_headItems[key];
 }
-trackheaditem *trackheaddrawingview::updateTrackHead(const QString& key, trackheaditem*curData)
+TrackHeadItem *TrackHeadDrawingView::updateTrackHead(const QString& key, TrackHeadItem*curData)
 {
     if(!m_headItems.contains(key))
         return nullptr;
@@ -115,13 +115,13 @@ trackheaditem *trackheaddrawingview::updateTrackHead(const QString& key, trackhe
     }
     return m_headItems[key];
 }
-void trackheaddrawingview::OnTrackHeadUpdate(const QString &key)
+void TrackHeadDrawingView::onTrackHeadUpdate(const QString &key)
 {
     if(!m_headItems.contains(key))
         return ;
     m_headItems[key]->forceUpdate();
 }
-void trackheaddrawingview::emptyTracks()
+void TrackHeadDrawingView::emptyTracks()
 {
     std::for_each(m_headItems.begin(), m_headItems.end(),[&](auto item)->void
     {
@@ -132,7 +132,7 @@ void trackheaddrawingview::emptyTracks()
     });
     m_headItems.clear();
 }
-void trackheaddrawingview::OnTrackBodyScroll(int pos)
+void TrackHeadDrawingView::onTrackBodyScroll(int pos)
 {
     verticalScrollBar()->setValue(pos);
     updateGeometry();

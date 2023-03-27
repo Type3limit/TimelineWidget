@@ -8,11 +8,11 @@
 
 #include <QGraphicsObject>
 
-class anchorheaditem: public QGraphicsObject
+class AnchorHeadItem: public QGraphicsObject
 {
     Q_OBJECT
 public:
-    explicit anchorheaditem(QGraphicsItem* object = nullptr);
+    explicit AnchorHeadItem(QGraphicsItem* object = nullptr);
 
     void forceUpdate();
     QRectF boundingRect()const override;
@@ -24,9 +24,9 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent * event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event)override;
 public slots:
-    void OnTimelinePosChanged(ulong pos);
+    void onTimelinePosChanged(ulong pos);
 signals:
-    void ReachEdge(int direction = 1);
+    void reachEdge(int direction = 1);
 private:
     volatile bool m_bIsStartDrag = false;
 };

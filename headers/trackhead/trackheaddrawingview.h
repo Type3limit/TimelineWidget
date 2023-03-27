@@ -12,26 +12,26 @@
 #include "selfcontainedscenesview.h"
 #include "trackheaditem.h"
 #include "timelinedefination.h"
-class trackheaddrawingview: public SelfContainedSceneView
+class TrackHeadDrawingView: public SelfContainedSceneView
 {
 public:
-    explicit trackheaddrawingview(QWidget* parent = nullptr);
+    explicit TrackHeadDrawingView(QWidget* parent = nullptr);
 public:
     ///添加一个项
-    bool addTrackHead(const trackmime& originData);
+    bool addTrackHead(const TrackMime& originData);
     ///删除一个项
     bool deleteTrackHead(const QString& key);
     ///获取一个项
-    trackheaditem* getTrackHead(const QString& key);
+    TrackHeadItem* getTrackHead(const QString& key);
     ///更改一个项
-    trackheaditem* updateTrackHead(const QString& key, trackheaditem* curData);
+    TrackHeadItem* updateTrackHead(const QString& key, TrackHeadItem* curData);
     ///清楚所有项
     void emptyTracks();
 public slots:
-    void OnTrackHeadUpdate(const QString& key);
-    void OnTrackBodyScroll(int pos);
+    void onTrackHeadUpdate(const QString& key);
+    void onTrackBodyScroll(int pos);
 private:
-    QMap<QString, trackheaditem*> m_headItems;
+    QMap<QString, TrackHeadItem*> m_headItems;
 };
 
 

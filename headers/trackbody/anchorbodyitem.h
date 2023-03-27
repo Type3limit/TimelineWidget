@@ -7,11 +7,11 @@
 
 
 #include <QGraphicsItem>
-class anchorbodyitem: public QGraphicsObject
+class AnchorBodyItem: public QGraphicsObject
 {
     Q_OBJECT
 public:
-    anchorbodyitem(QGraphicsItem* parent = nullptr);
+    AnchorBodyItem(QGraphicsItem* parent = nullptr);
     void forceUpdate();
 protected:
     QRectF boundingRect()const override;
@@ -22,7 +22,7 @@ protected:
     void mouseMoveEvent(QGraphicsSceneMouseEvent * event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event)override;
 public slots:
-    void OnTimelinePosChanged(ulong pos);
+    void onTimelinePosChanged(ulong pos);
 
 private:
     volatile bool m_bIsStartDrag = false;

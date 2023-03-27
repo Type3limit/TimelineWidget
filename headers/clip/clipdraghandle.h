@@ -7,13 +7,13 @@
 
 
 #include <QGraphicsItem>
-class clipdraghandle: public QGraphicsItem
+class ClipDragHandle: public QGraphicsItem
 {
 private:
     QRectF m_drawingRect;
     bool m_isAddToScene = false;
 public:
-    clipdraghandle(QGraphicsItem* parent=nullptr){
+    ClipDragHandle(QGraphicsItem* parent=nullptr){
         setFlags(ItemSendsGeometryChanges);
         setAcceptHoverEvents(true);
         //setAcceptedMouseButtons(Qt::MouseButton::LeftButton);

@@ -20,14 +20,14 @@ int main(int argc, char *argv[])
     ///序列化测试
 //    intervalwatcher sp;
 //    sp.start();
-//    trackmime data {"json序列化中文测试",1,SpecificType::Sticker,true,false};
+//    TrackMime data {"json序列化中文测试",1,SpecificType::Sticker,true,false};
 //    sstream ss;
 //    TO_JSON(ss,data);
 //    sp.stop();
 //    qDebug()<<ss.str().c_str();
 //    qDebug()<<QString::number(sp.milliSecond())+"ms after track serialize ";
 //    sp.start();
-//    trackmime data2;
+//    TrackMime data2;
 //    FROM_JSON(data2,ss.str().c_str());
 //    qDebug()<<data2.toString();
 //    sp.stop();

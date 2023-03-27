@@ -4,13 +4,13 @@
 
 #include "MimeData/cliprange.h"
 #include "intervalwatcher.h"
-void cliprange::buildFromTimelineData(QList<trackmime> data)
+void ClipRange::buildFromTimelineData(QList<TrackMime> data)
 {
     m_datas.clear();
-    std::for_each(data.begin(), data.end(), [&](trackmime &cur) -> void
+    std::for_each(data.begin(), data.end(), [&](TrackMime &cur) -> void
     {
         QMap<QString, QList<uint64_t>> clipsData;
-        std::sort(cur.clips.begin(), cur.clips.end(), [&](const clipmime &left, const clipmime &right) -> bool
+        std::sort(cur.clips.begin(), cur.clips.end(), [&](const ClipMime &left, const ClipMime &right) -> bool
         {
             return left.startPos < right.startPos;
         });
@@ -21,7 +21,7 @@ void cliprange::buildFromTimelineData(QList<trackmime> data)
         m_datas.insert(cur.id, clipsData);
     });
 }
-void cliprange::oneClipChanged(const clipmime &clipData, const QString& originTrackKey)
+void ClipRange::oneClipChanged(const ClipMime &clipData, const QString& originTrackKey)
 {
     if (!m_datas.contains(clipData.trackId)&&originTrackKey.isEmpty())//no tracks contained
         return;
@@ -39,7 +39,7 @@ void cliprange::oneClipChanged(const clipmime &clipData, const QString& originTr
     }
 
 }
-bool cliprange::hasCollision(const QString &trackKey, const QString &clipKey, QList<QString> &collisionItem)
+bool ClipRange::hasCollision(const QString &trackKey, const QString &clipKey, QList<QString> &collisionItem)
 {
     if (!m_datas.contains(trackKey))
         return false;
@@ -62,7 +62,7 @@ bool cliprange::hasCollision(const QString &trackKey, const QString &clipKey, QL
     iw.stop();
     return collisionItem.count() > 0;
 }
-bool cliprange::isClipExistAt(uint64_t pos, const QString &trackKey, QList<QString> &datas)
+bool ClipRange::isClipExistAt(uint64_t pos, const QString &trackKey, QList<QString> &datas)
 {
     if (!m_datas.contains(trackKey))
        return false;

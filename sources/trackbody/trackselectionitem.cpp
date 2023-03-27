@@ -5,7 +5,7 @@
 #include "TrackBody/trackselectionitem.h"
 #include "timelinedefination.h"
 #include <QPainter>
-void trackselectionitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TrackSelectionItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -13,7 +13,7 @@ void trackselectionitem::paint(QPainter *painter, const QStyleOptionGraphicsItem
     painter->setPen(QPen(Qt::lightGray,1,Qt::DashLine));
     painter->drawRoundedRect(boundingRect(),15,15);
 }
-QRectF trackselectionitem::boundingRect() const
+QRectF TrackSelectionItem::boundingRect() const
 {
     if(m_startPos.x()>m_endPos.x()&&m_startPos.y()>m_endPos.y())
     {
@@ -25,7 +25,7 @@ QRectF trackselectionitem::boundingRect() const
     }
 
 }
-void trackselectionitem::setPos(QPointF start, QPointF end)
+void TrackSelectionItem::setPos(QPointF start, QPointF end)
 {
     m_startPos = start;
     m_endPos = end;

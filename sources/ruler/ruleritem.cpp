@@ -7,12 +7,12 @@
 #include "timelinedefination.h"
 #include "intervalwatcher.h"
 #include <QStyleOptionGraphicsItem>
-#define TimelineInstance() (GET_POINTER<timelinewidget>())
+#define TimelineInstance() (GET_POINTER<TimelineWidget>())
 //intervalwatcher iw ;
-void ruleritem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void RulerItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     //iw.start();
-    if (!CHECK_POINTER<timelinewidget>()) {
+    if (!CHECK_POINTER<TimelineWidget>()) {
         Q_UNUSED(option);
         Q_UNUSED(widget);
         Q_UNUSED(painter);
@@ -35,17 +35,17 @@ void ruleritem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     //iw.stop();
     //qDebug()<<iw.milliSecond()<<" ms after ruler repaint";
 }
-QRectF ruleritem::boundingRect() const
+QRectF RulerItem::boundingRect() const
 {
     return m_updateRect;
 }
-void ruleritem::OnLengthChange()
+void RulerItem::OnLengthChange()
 {
     m_lines.clear();
     m_pointText.clear();
     auto maxDuration = TimelineInstance()->maxDuration();
     auto frameTick = TimelineInstance()->frameTick();
-    auto regionRect = TimelineInstance()->getArea(timelinewidget::Area::RightTop);
+    auto regionRect = TimelineInstance()->getArea(TimelineWidget::Area::RightTop);
     auto maxDrawingHeight = (int)(regionRect.height() * (PERCENT_OF_TICK / 100.0));
     auto drawingCount = (int)(maxDuration / frameTick);
     auto drawingWidth = (int)(maxDuration / frameTick) * MIN_TICK_WIDTH;
@@ -62,11 +62,11 @@ void ruleritem::OnLengthChange()
     }
     prepareGeometryChange();
 }
-ruleritem::ruleritem(QGraphicsObject *parent): QGraphicsItem(parent)
+RulerItem::RulerItem(QGraphicsObject *parent): QGraphicsItem(parent)
 {
     //setCacheMode(CacheMode::DeviceCoordinateCache);
 }
-void ruleritem::setUpdateRect(const QRectF &dest)
+void RulerItem::setUpdateRect(const QRectF &dest)
 {
     m_updateRect = dest;
     prepareGeometryChange();

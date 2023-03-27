@@ -7,13 +7,13 @@
 
 
 #include <QGraphicsItem>
-class shadowclipitem: public QGraphicsItem
+class ShadowClipItem: public QGraphicsItem
 {
 private:
     QString m_key;
     QRectF m_drawRect;
 public:
-    explicit shadowclipitem(const QString& key): m_key(key){
+    explicit ShadowClipItem(const QString& key): m_key(key){
     }
     void setDrawRect(const QRectF&rec);
     void forceUpdate();

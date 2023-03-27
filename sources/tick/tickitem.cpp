@@ -7,7 +7,7 @@
 #include "timelinewidget.h"
 #include "timelinedefination.h"
 ///
-#define TimelineInstance()  (GET_POINTER<timelinewidget>())
+#define TimelineInstance()  (GET_POINTER<TimelineWidget>())
 
 
 static QRectF GetCenteredValueOf(QRectF sourceRect, QRectF containedRect)
@@ -19,7 +19,7 @@ static QRectF GetCenteredValueOf(QRectF sourceRect, QRectF containedRect)
     return {Left, Top, static_cast<qreal>(containedRect.width()), static_cast<qreal>(containedRect.height())};
 }
 
-void tickitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void TickItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
@@ -35,12 +35,12 @@ void tickitem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, 
         QRectF(0, 0, scene()->width(), scene()->height()),
         QRectF(0, 0, StrLength, SCALE_CODE_FONT_SIZE));
     painter->drawText(resultRect, m_str);
-//    auto regionRect = TimelineInstance()->getArea(timelinewidget::Area::LeftTop);
+//    auto regionRect = TimelineInstance()->getArea(TimelineWidget::Area::LeftTop);
 //    painter->setPen(QPen(DRAW_COLOR));
 //    painter->setBrush(QBrush(DRAW_COLOR));
     //painter->drawLine(QPoint(0, regionRect.height()), QPoint(regionRect.width(), regionRect.height()));
 }
-QRectF tickitem::boundingRect() const
+QRectF TickItem::boundingRect() const
 {
     return GetCenteredValueOf(QRectF(0, 0, scene()->width(), scene()->height()),
                               QRectF(0, 0, m_str.length() * SCALE_CODE_FONT_SIZE, SCALE_CODE_FONT_SIZE));

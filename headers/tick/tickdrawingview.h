@@ -10,22 +10,22 @@
 #include <QWeakPointer>
 #include "tickitem.h"
 #include "selfcontainedscenesview.h"
-class tickdrawingview: public SelfContainedSceneView
+class TickDrawingView: public SelfContainedSceneView
 {
     Q_OBJECT
 public:
-    explicit tickdrawingview(QWidget* parent = nullptr)
+    explicit TickDrawingView(QWidget* parent = nullptr)
     {
-        m_tickItem = new tickitem();
+        m_tickItem = new TickItem();
         m_scene->addItem(m_tickItem);
     }
-    ~tickdrawingview()
+    ~TickDrawingView()
     {
         SAFE_DELETE(m_tickItem);
     }
 protected:
 
-    tickitem* m_tickItem = nullptr;
+    TickItem* m_tickItem = nullptr;
 };
 
 

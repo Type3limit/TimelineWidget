@@ -23,7 +23,7 @@ MainWindow::~MainWindow()
     sstream ss;
     TO_JSON( ss,ui->widget->getTimeMime());
     //qDebug()<<ss.str().c_str();
-    extensionMethods::QStringExtension::writeAllText("./test.json", QString::fromStdString(ss.str()));
+    ExtensionMethods::QStringExtension::writeAllText("./test.json", QString::fromStdString(ss.str()));
     iw.stop();
     qDebug()<<iw.milliSecond()<<"ms after timeline serialize";
     delete ui;
@@ -38,7 +38,7 @@ void MainWindow::showEvent(QShowEvent *event)
     intervalwatcher iw;
     iw.start();
     isFirstShow = false;
-    if(extensionMethods::QStringExtension::isFileExist("./test.json")&&
+    if(ExtensionMethods::QStringExtension::isFileExist("./test.json")&&
         ui->widget->buildFromJsonFile("./test.json"))
     {
         iw.stop();
@@ -58,7 +58,7 @@ void MainWindow::showEvent(QShowEvent *event)
     {
         for(int j = 0;j<3;j++)
         {
-            clipmime clip(QUuid::createUuid().toString().remove("{").remove("}").remove("-"), ids[j%3], (ulong)i*1200+j*100, (ulong)1200, (static_cast<SpecificType>(i%3+1)));
+            ClipMime clip(QUuid::createUuid().toString().remove("{").remove("}").remove("-"), ids[j%3], (ulong)i*1200+j*100, (ulong)1200, (static_cast<SpecificType>(i%3+1)));
             ui->widget->addClip(ids[j%3],clip);
         }
     }

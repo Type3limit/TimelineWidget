@@ -8,10 +8,10 @@
 
 #include <QGraphicsItem>
 #include "extensionmethods.h"
-class ruleritem: public QGraphicsItem
+class RulerItem: public QGraphicsItem
 {
 public:
-    explicit ruleritem(QGraphicsObject* parent = nullptr);
+    explicit RulerItem(QGraphicsObject* parent = nullptr);
     QRectF boundingRect()const override;
     void OnLengthChange();
     void setUpdateRect(const QRectF& dest);

@@ -7,19 +7,19 @@
 
 
 #include <QGraphicsItem>
-class trackselectionitem: public QGraphicsItem
+class TrackSelectionItem: public QGraphicsItem
 {
 private:
     QPointF m_startPos;
     QPointF m_endPos;
 public:
-    trackselectionitem()=default;
+    TrackSelectionItem()=default;
     QRectF boundingRect() const override;
     void setPos(QPointF start,QPointF end);
 protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
 
-    friend class trackbodydrawingview;
+    friend class TrackBodyDrawingView;
 };
 
 

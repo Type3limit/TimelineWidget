@@ -5,22 +5,22 @@
 #include "Clip/clipdraghandle.h"
 #include <QCursor>
 #include <QPainter>
-void clipdraghandle::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void ClipDragHandle::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     setCursor(Qt::CursorShape::SizeHorCursor);
     QGraphicsItem::hoverEnterEvent(event);
 }
-void clipdraghandle::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void ClipDragHandle::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     setCursor(Qt::CursorShape::ArrowCursor);
     QGraphicsItem::hoverLeaveEvent(event);
 }
-QRectF clipdraghandle::boundingRect() const
+QRectF ClipDragHandle::boundingRect() const
 {
     return m_drawingRect;
 }
 
-void clipdraghandle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void ClipDragHandle::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);

@@ -9,9 +9,9 @@
 #include <QApplication>
 #include <QDebug>
 #include <QGraphicsSceneMouseEvent>
-#define  TimelineInstance() (GET_POINTER<timelinewidget>())
+#define  TimelineInstance() (GET_POINTER<TimelineWidget>())
 
-anchorheaditem::anchorheaditem(QGraphicsItem *object)
+AnchorHeadItem::AnchorHeadItem(QGraphicsItem *object)
     : QGraphicsObject(object)
 {
 
@@ -20,21 +20,21 @@ anchorheaditem::anchorheaditem(QGraphicsItem *object)
     setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::LeftButton);
     //setCacheMode(QGraphicsItem::CacheMode::DeviceCoordinateCache);
-    connect(TimelineInstance(), &timelinewidget::FrameTickChanged, this, [&](auto data) -> void
+    connect(TimelineInstance(), &TimelineWidget::FrameTickChanged, this, [&](auto data) -> void
     { this->prepareGeometryChange(); });
 
 }
 
-QRectF anchorheaditem::boundingRect() const
+QRectF AnchorHeadItem::boundingRect() const
 {
     auto curXPos = ((double)(TimelineInstance()->curPos())
         / (double)(TimelineInstance()->frameTick())) * MIN_TICK_WIDTH;
-    auto curYPos = TimelineInstance()->getArea(timelinewidget::RightTop).height();
+    auto curYPos = TimelineInstance()->getArea(TimelineWidget::RightTop).height();
     auto bw = TIMELINE_ANCHOR_WIDTH / 2;//bisection of width
 
     return {curXPos - bw, curYPos - bw, TIMELINE_ANCHOR_WIDTH, TIMELINE_ANCHOR_WIDTH};
 }
-void anchorheaditem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+void AnchorHeadItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     //intervalwatcher iw;
     //iw.start();
@@ -43,7 +43,7 @@ void anchorheaditem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     QPainterPath path;
     auto curXPos = ceil(((double)(TimelineInstance()->curPos())
         / (double)(TimelineInstance()->frameTick())) * MIN_TICK_WIDTH);
-    auto curYPos = TimelineInstance()->getArea(timelinewidget::RightTop).height() + WIDGET_MARGIN;
+    auto curYPos = TimelineInstance()->getArea(TimelineWidget::RightTop).height() + WIDGET_MARGIN;
     auto bw = TIMELINE_ANCHOR_WIDTH / 2;//bisection of width
     painter->setPen(QPen(ANCHOR_COLOR));
     painter->setBrush(QBrush(ANCHOR_COLOR));
@@ -59,21 +59,21 @@ void anchorheaditem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     //iw.stop();
     //qDebug()<<iw.milliSecond()<<"ms after anchor head repaint";
 }
-void anchorheaditem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void AnchorHeadItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
 {
     setCursor(QCursor(Qt::CursorShape::SizeHorCursor));
     QGraphicsItem::hoverEnterEvent(event);
 }
-void anchorheaditem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void AnchorHeadItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 {
     setCursor(QCursor());
     QGraphicsItem::hoverLeaveEvent(event);
 }
-void anchorheaditem::OnTimelinePosChanged(ulong pos)
+void AnchorHeadItem::onTimelinePosChanged(ulong pos)
 {
     prepareGeometryChange();
 }
-void anchorheaditem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void AnchorHeadItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     if (!m_bIsStartDrag) {
         event->accept();
@@ -85,7 +85,7 @@ void anchorheaditem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
 
 }
-void anchorheaditem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
+void AnchorHeadItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if (m_bIsStartDrag) {
         event->accept();
@@ -100,7 +100,7 @@ void anchorheaditem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         QGraphicsItem::mouseMoveEvent(event);
     }
 }
-void anchorheaditem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void AnchorHeadItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     if (m_bIsStartDrag) {
         m_bIsStartDrag = false;
@@ -108,7 +108,7 @@ void anchorheaditem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
     QGraphicsItem::mouseReleaseEvent(event);
 }
-void anchorheaditem::forceUpdate()
+void AnchorHeadItem::forceUpdate()
 {
     prepareGeometryChange();
     update();

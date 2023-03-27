@@ -6,22 +6,22 @@
 #include <QScrollBar>
 #include "timelinewidget.h"
 #include "timelinedefination.h"
-#define TimelineInstance() (GET_POINTER<timelinewidget>())
+#define TimelineInstance() (GET_POINTER<TimelineWidget>())
 
-rulerdrawingview::rulerdrawingview(QWidget *parent)
+RulerDrawingView::RulerDrawingView(QWidget *parent)
     : SelfContainedSceneView(parent)
 {
 
     setFocusPolicy(Qt::FocusPolicy::NoFocus);
-    m_ruler = new ruleritem();
-    m_anchorHead = new anchorheaditem(m_ruler);
+    m_ruler = new RulerItem();
+    m_anchorHead = new AnchorHeadItem(m_ruler);
     scene()->addItem(m_ruler);
     //scene()->addItem(m_anchorHead);
     auto timelineWidget = TimelineInstance();
-    connect(timelineWidget, &timelinewidget::PositionChanged, m_anchorHead,
+    connect(timelineWidget, &TimelineWidget::PositionChanged, m_anchorHead,
             [&](ulong curpos)->void{
              m_ruler->setUpdateRect(getViewPortRect());
-             m_anchorHead->OnTimelinePosChanged(curpos);
+                m_anchorHead->onTimelinePosChanged(curpos);
         }, Qt::ConnectionType::QueuedConnection);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 #pragma region setStyle
@@ -84,7 +84,7 @@ rulerdrawingview::rulerdrawingview(QWidget *parent)
 #pragma endregion
 }
 
-void rulerdrawingview::OnTrackBodyScroll(int pos)
+void RulerDrawingView::onTrackBodyScroll(int pos)
 {
     horizontalScrollBar()->setValue(pos);
     updateGeometry();
@@ -95,12 +95,12 @@ void rulerdrawingview::OnTrackBodyScroll(int pos)
     }
 }
 
-void rulerdrawingview::mousePressEvent(QMouseEvent *event)
+void RulerDrawingView::mousePressEvent(QMouseEvent *event)
 {
     auto curItems = items(event->pos());
     //qDebug() << curItems;
-    if (extensionMethods::sourcesExtension<QGraphicsItem *>::firstOf(curItems, [&](auto obj) -> bool{
-        return dynamic_cast<anchorheaditem *>(obj) != nullptr;}, nullptr) == nullptr) {
+    if (ExtensionMethods::SourcesExtension<QGraphicsItem *>::firstOf(curItems, [&](auto obj) -> bool{
+        return dynamic_cast<AnchorHeadItem *>(obj) != nullptr;}, nullptr) == nullptr) {
         auto deltaOfX = (event->x()+horizontalScrollBar()->value()) / (double)m_nWidth;
 //        qDebug()<<event->x()<<":"<<horizontalScrollBar()->value();
         auto actualFrame = (double)TimelineInstance()->maxDuration() * deltaOfX;
@@ -113,7 +113,7 @@ void rulerdrawingview::mousePressEvent(QMouseEvent *event)
 
     SelfContainedSceneView::mousePressEvent(event);
 }
-void rulerdrawingview::mouseMoveEvent(QMouseEvent *evt)
+void RulerDrawingView::mouseMoveEvent(QMouseEvent *evt)
 {
     if(!evt->modifiers().testFlag(Qt::ShiftModifier) && evt->buttons().testFlag(Qt::LeftButton))
     {
@@ -131,18 +131,18 @@ void rulerdrawingview::mouseMoveEvent(QMouseEvent *evt)
         {
             auto cur = horizontalScrollBar()->value();
             horizontalScrollBar()->setValue(cur-(distance*XDirection));
-            emit OnAnchorHeadReachEdge(cur-(distance*XDirection));
+            emit onAnchorHeadReachEdge(cur - (distance * XDirection));
         }
 
     }
     QGraphicsView::mouseMoveEvent(evt);
 }
-void rulerdrawingview::rulerUpdate()
+void RulerDrawingView::rulerUpdate()
 {
     m_ruler->setUpdateRect( getViewPortRect());
     m_ruler->OnLengthChange();
 }
-void rulerdrawingview::setDrawingAreaSize(int width, int height)
+void RulerDrawingView::setDrawingAreaSize(int width, int height)
 {
     SelfContainedSceneView::setDrawingAreaSize(width, height);
 }
