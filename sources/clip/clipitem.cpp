@@ -231,7 +231,7 @@ void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
         //left expand
     else if (m_isLeftExpand) {
-        this->scene()->removeItem(m_shadow);
+        removeShadow();
         double deltaX = timeline()->percentPerUnit() * (m_shadowRect.x() - boundingRect().x());
         auto curS = (int64_t)curMime.startPos + (int64_t)(deltaX);
         auto curD = (int64_t)curMime.duration - (int64_t)(deltaX);
@@ -245,7 +245,7 @@ void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     }
         //right expand
     else if (m_isRightExpand) {
-        this->scene()->removeItem(m_shadow);
+        removeShadow();
         double deltaX = timeline()->percentPerUnit() * ((m_shadowRect.x() + m_shadowRect.width())
             - (boundingRect().width() + boundingRect().x()));
         auto curD = (int64_t)curMime.duration + (int64_t)(deltaX);
@@ -362,31 +362,8 @@ ClipMime ClipItem::stopClipDrag(bool isMultiMode)
 {
     if (this->scene() == nullptr)
         return {};
-    qDebug()<<m_shadowRect;
     auto curMime = getMimeData(m_mimeKey);
     if (m_isDragMoved) {
-        auto p = this;
-        auto removeShadow = [&p]() -> void
-        {
-            if (p->m_shadow) {
-                p->m_shadow->setDrawRect({0, 0, 0, 0});
-                p->m_shadow->forceUpdate();
-            }
-            p->m_shadowRect=p->boundingRect();
-            if(p->scene()->items().contains(p->m_shadow))
-                p->scene()->removeItem(p->m_shadow);
-        };
-//        auto removeShadow = [&]() -> void
-//        {
-//            if (m_shadow) {
-//                m_shadow->setDrawRect({0, 0, 0, 0});
-//                m_shadow->forceUpdate();
-//            }
-//            m_shadowRect=boundingRect();
-//            if(scene()->items().contains(m_shadow))
-//                scene()->removeItem(m_shadow);
-//        };
-
         curMime.startPos = getStartPosAfterDragMove(curMime);
         if (isMultiMode) {
             timeline()->alterClipData(curMime.id, m_trackMimeKey, curMime);
@@ -508,11 +485,11 @@ bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKe
                    ::firstOf(currentCollisionItems,
                              [&](QGraphicsItem *curItem) -> bool
                              {
-                                 auto clipItem =dynamic_cast<ClipItem *>(curItem);
+                                 auto clipItem = dynamic_cast<ClipItem *>(curItem);
                                  if (clipItem == nullptr)
                                      return false;
-                                 return clipItem->m_mimeKey== curClip.id;
-                             },nullptr) != nullptr;
+                                 return clipItem->m_mimeKey == curClip.id;
+                             }, nullptr) != nullptr;
                },
                ClipMime());
         //auto clipItem = dynamic_cast<ClipItem *>(currentCollisionItems.last());
@@ -525,8 +502,8 @@ bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKe
                 right.startPos = left.startPos + left.duration + curMime.duration;
                 diffDelta = right.duration;
                 timeline()->removeClip(collisionItem);
-                timeline()->addClip(curMime.trackId, left,true,false);
-                timeline()->addClip(curMime.trackId, right,true,false);
+                timeline()->addClip(curMime.trackId, left, true, false);
+                timeline()->addClip(curMime.trackId, right, true, false);
             }
         }
 
@@ -624,6 +601,16 @@ bool ClipItem::preCheckForCollision(ClipMime &mime, TrackMime &targetTrack)
         //qDebug() << "current with collision";
     }
     return res;
+}
+void ClipItem::removeShadow()
+{
+    if (m_shadow) {
+        m_shadow->setDrawRect({0, 0, 0, 0});
+        m_shadow->forceUpdate();
+    }
+    m_shadowRect = boundingRect();
+    if (scene()->items().contains(m_shadow))
+        scene()->removeItem(m_shadow);
 }
 
 

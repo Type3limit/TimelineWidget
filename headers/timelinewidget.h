@@ -85,6 +85,8 @@ public:
     bool addTrack(const QString &key, int trackType, int index);
     ///删除轨道
     void removeTrack(const QString &key);
+    ///删除所有空轨道
+    void removeEmptyTrack();
 #pragma endregion
 #pragma region Clip option
     ///设置被选中的单个切片，如有多个，会替换为当前设置切片

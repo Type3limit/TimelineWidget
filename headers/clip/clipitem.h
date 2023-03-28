@@ -35,6 +35,7 @@ protected:
 private:
     void init();
     void clipDrag(int x,int y);
+    void removeShadow();
     ClipMime stopClipDrag(bool isMultiMode = false);
     bool checkForCollision(ClipMime& mime, const QString& originTrackKey="");
     bool preCheckForCollision(ClipMime& mime, TrackMime &targetTrack);

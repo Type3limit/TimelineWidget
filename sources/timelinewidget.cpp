@@ -708,7 +708,7 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
                 //outOfTrackCount = true;
                 for (const auto &st: m_selectedClips)
                 {
-                    m_selectedClipsCache[st]->stopClipDrag(true);
+                    m_selectedClipsCache[st]->removeShadow();
                 }
                 return;
             }
@@ -734,6 +734,7 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
         }
         else {
             multiClipCollied(movements);
+
         }
     }
     else {
@@ -753,6 +754,7 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
     }
 
     m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
+    removeEmptyTrack();
 }
 
 QList<ClipItem *> TimelineWidget::getAllSelectedClip()
@@ -892,6 +894,17 @@ bool TimelineWidget::buildFromJson(const QString &data)
     iw.stop();
     qDebug() << iw.milliSecond() << "ms after build json data";
     return true;
+}
+void TimelineWidget::removeEmptyTrack()
+{
+    auto emptyTracks = ExtensionMethods::SourcesExtension<TrackMime>::where({m_timelineData.tracks.begin(),m_timelineData.tracks.end()},[&](const TrackMime& curTrack)->bool
+    {
+       return curTrack.clips.empty();
+    });
+    for(int i =0 ;i<emptyTracks.size();i++)
+    {
+        removeTrack(emptyTracks[i].id);
+    }
 }
 
 
