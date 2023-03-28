@@ -325,17 +325,18 @@ void ClipItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 }
 ulong ClipItem::getStartPosAfterDragMove(ClipMime &curMime)
 {
-    auto xDelta = m_shadowRect.x() - m_originRect.x();
+    //auto xDelta = m_shadowRect.x() - m_originRect.x();
     if (curMime.isDefaultData()) {
         curMime = getMimeData(m_mimeKey);
     }
     if (curMime.isDefaultData())
         return 0;
-    auto curFrameMoved = (long)ceil(xDelta * timeline()->percentPerUnit());
-    long curX = (long)curMime.startPos;
-    return curX + curFrameMoved < 0 ? 0 :
-           (curX + curFrameMoved > timeline()->maxDuration() ?
-            timeline()->maxDuration() : curX + curFrameMoved);
+    //auto curFrameMoved = (long)ceil(xDelta * timeline()->percentPerUnit());
+    long curX = (long)(mapFromScene(m_shadowRect).boundingRect().x() * timeline()->percentPerUnit());//curMime.startPos;
+    //qDebug()<<"with "<<curX<<":["<<mapFromScene(m_shadowRect).boundingRect().x()<<","<<timeline()->percentPerUnit()<<"]";
+    return curX < 0 ? 0 :
+           (curX > timeline()->maxDuration() ?
+            timeline()->maxDuration() : curX);
 }
 void ClipItem::clipDrag(int x, int y)
 {
@@ -361,13 +362,30 @@ ClipMime ClipItem::stopClipDrag(bool isMultiMode)
 {
     if (this->scene() == nullptr)
         return {};
+    qDebug()<<m_shadowRect;
     auto curMime = getMimeData(m_mimeKey);
     if (m_isDragMoved) {
-        if (m_shadow) {
-            m_shadow->setDrawRect({0, 0, 0, 0});
-            m_shadow->forceUpdate();
-        }
-        this->scene()->removeItem(m_shadow);
+        auto p = this;
+        auto removeShadow = [&p]() -> void
+        {
+            if (p->m_shadow) {
+                p->m_shadow->setDrawRect({0, 0, 0, 0});
+                p->m_shadow->forceUpdate();
+            }
+            p->m_shadowRect=p->boundingRect();
+            if(p->scene()->items().contains(p->m_shadow))
+                p->scene()->removeItem(p->m_shadow);
+        };
+//        auto removeShadow = [&]() -> void
+//        {
+//            if (m_shadow) {
+//                m_shadow->setDrawRect({0, 0, 0, 0});
+//                m_shadow->forceUpdate();
+//            }
+//            m_shadowRect=boundingRect();
+//            if(scene()->items().contains(m_shadow))
+//                scene()->removeItem(m_shadow);
+//        };
 
         curMime.startPos = getStartPosAfterDragMove(curMime);
         if (isMultiMode) {
@@ -376,6 +394,7 @@ ClipMime ClipItem::stopClipDrag(bool isMultiMode)
                 forceUpdate();
                 checkExpandHandle(boundingRect());
             }
+            removeShadow();
             return curMime;
         }
         TrackMime readyTrackData;
@@ -404,6 +423,7 @@ ClipMime ClipItem::stopClipDrag(bool isMultiMode)
             forceUpdate();
             checkExpandHandle(boundingRect());
         }
+        removeShadow();
         m_isDragMoved = false;
 
     }
@@ -425,12 +445,23 @@ void ClipItem::forceUpdate()
 }
 bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKey)
 {
-    QList<TrackMime> curTracksData(timeline()->m_timelineData.tracks.begin(),
-                                   timeline()->m_timelineData.tracks.end());
-    auto curRange = ClipRange(curTracksData);
-    curRange.oneClipChanged(curMime, originTrackKey);
-    QList<QString> collisionItems;
-    auto hasCollision = curRange.hasCollision(curMime.trackId, curMime.id, collisionItems);
+    //QList<TrackMime> curTracksData(timeline()->m_timelineData.tracks.begin(),
+    //                               timeline()->m_timelineData.tracks.end());
+    //auto curRange = ClipRange(curTracksData);
+    //curRange.oneClipChanged(curMime, originTrackKey);
+    //QList<QString> collisionItems;
+    auto currentCollisionItems = ExtensionMethods::SourcesExtension<QGraphicsItem *>
+    ::where(m_shadow->collidingItems(),
+            [&](QGraphicsItem *curItem) -> bool
+            {
+                auto clipItem = dynamic_cast<ClipItem *>(curItem);
+                if (clipItem == nullptr)
+                    return false;
+                return !timeline()->isSelected(
+                    clipItem->m_mimeKey) && clipItem->m_trackMimeKey == curMime.trackId;
+            });
+    auto hasCollision =
+        currentCollisionItems.count() > 0;// curRange.hasCollision(curMime.trackId, curMime.id, collisionItems);
     if (!hasCollision)
         return false;
     TrackMime trackData;
@@ -471,19 +502,31 @@ bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKe
         //for head ,depart it,get the diffDelta with last clip.
         auto collisionItem = ExtensionMethods::SourcesExtension<ClipMime>::
         lastOf(headClips,
-               [&collisionItems](const ClipMime &curClip) -> bool
+               [&currentCollisionItems](const ClipMime &curClip) -> bool
                {
-                   return collisionItems.contains(curClip.id);
+                   return ExtensionMethods::SourcesExtension<QGraphicsItem *>
+                   ::firstOf(currentCollisionItems,
+                             [&](QGraphicsItem *curItem) -> bool
+                             {
+                                 auto clipItem =dynamic_cast<ClipItem *>(curItem);
+                                 if (clipItem == nullptr)
+                                     return false;
+                                 return clipItem->m_mimeKey== curClip.id;
+                             },nullptr) != nullptr;
                },
                ClipMime());
+        //auto clipItem = dynamic_cast<ClipItem *>(currentCollisionItems.last());
+        //if (clipItem == nullptr)
+        //return false;
+        //auto collisionItem = clipItem->getMimeData(clipItem->m_mimeKey);
         ClipMime left, right;
         if (!collisionItem.isDefaultData()) {
             if (collisionItem.cutUp(curMime.startPos, left, right)) {
                 right.startPos = left.startPos + left.duration + curMime.duration;
                 diffDelta = right.duration;
                 timeline()->removeClip(collisionItem);
-                timeline()->addClip(curMime.trackId, left);
-                timeline()->addClip(curMime.trackId, right);
+                timeline()->addClip(curMime.trackId, left,true,false);
+                timeline()->addClip(curMime.trackId, right,true,false);
             }
         }
 
@@ -494,7 +537,9 @@ bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKe
                 tailClips[i].startPos += (curMime.duration + diffDelta);
                 timeline()->alterClipData(tailClips[i].id, tailClips[i].trackId, tailClips[i]);
             }
+
         }
+        timeline()->updateMaxDuration();
         return true;
     }
 }
@@ -539,43 +584,44 @@ bool ClipItem::preCheckForCollision(ClipMime &mime, TrackMime &targetTrack)
 {
     auto curMime = getMimeData(m_mimeKey);
     curMime.startPos = getStartPosAfterDragMove(curMime);
-    bool isChangeTrack = false;
-    auto originTrackKey = curMime.trackId;
-    auto currentCollisionItems = ExtensionMethods::SourcesExtension<QGraphicsItem *>::where(m_shadow->collidingItems(),
-                                                                                            [&](QGraphicsItem *curItem) -> bool
-                                                                                            {
-                                                                                                auto clipItem =
-                                                                                                    dynamic_cast<ClipItem *>(curItem);
-                                                                                                if (clipItem == nullptr)
-                                                                                                    return false;
-                                                                                                return !timeline()
-                                                                                                    ->isSelected(
-                                                                                                        clipItem
-                                                                                                            ->m_mimeKey);
-                                                                                            });
+    //bool isChangeTrack = false;
+    //auto originTrackKey = curMime.trackId;
+    auto currentCollisionItems = ExtensionMethods::SourcesExtension<QGraphicsItem *>
+    ::where(m_shadow->collidingItems(),
+            [&](QGraphicsItem *curItem) -> bool
+            {
+                auto clipItem =
+                    dynamic_cast<ClipItem *>(curItem);
+                if (clipItem == nullptr)
+                    return false;
+                return !timeline()
+                    ->isSelected(
+                        clipItem
+                            ->m_mimeKey);
+            });
 
     timeline()->getTrackByVerticalPos(mapFromScene(m_shadowRect).boundingRect().y() + TRACK_HEIGHT / 2.0, targetTrack);
     if (!targetTrack.isDefaultData()) {
-        isChangeTrack = true;
+        //isChangeTrack = true;
         curMime.trackId = targetTrack.id;
     }
-    QList<TrackMime> curTracksData(timeline()->m_timelineData.tracks.begin(),
-                                   timeline()->m_timelineData.tracks.end());
-
-    auto curRange = ClipRange(curTracksData);
-    curRange.oneClipChanged(curMime, originTrackKey);
-    QList<QString> collisionItems;
+//    QList<TrackMime> curTracksData(timeline()->m_timelineData.tracks.begin(),
+//                                   timeline()->m_timelineData.tracks.end());
+//
+//    auto curRange = ClipRange(curTracksData);
+//    curRange.oneClipChanged(curMime, originTrackKey);
+//    QList<QString> collisionItems;
     mime = curMime;
-    curRange.hasCollision(curMime.trackId, curMime.id, collisionItems);
-    bool res = collisionItems.count() > 0;
-    if (collisionItems.count() > 0) {
-        res = std::any_of(collisionItems.begin(), collisionItems.end(), [&](const QString &str) -> bool
-        {
-            return !timeline()->isSelected(str);
-        });
-    }
+    //curRange.hasCollision(curMime.trackId, curMime.id, collisionItems);
+    bool res = currentCollisionItems.count() > 0; //collisionItems.count() > 0;
+//    if (collisionItems.count() > 0) {
+//        res = std::any_of(collisionItems.begin(), collisionItems.end(), [&](const QString &str) -> bool
+//        {
+//            return !timeline()->isSelected(str);
+//        });
+//    }
     if (res) {
-        qDebug() << "current with collision";
+        //qDebug() << "current with collision";
     }
     return res;
 }

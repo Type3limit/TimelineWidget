@@ -20,7 +20,7 @@ MainWindow::~MainWindow()
 {
     intervalwatcher iw;
     iw.start();
-    sstream ss;
+    S_STREAM ss;
     TO_JSON( ss,ui->widget->getTimeMime());
     //qDebug()<<ss.str().c_str();
     ExtensionMethods::QStringExtension::writeAllText("./test.json", QString::fromStdString(ss.str()));
@@ -62,6 +62,7 @@ void MainWindow::showEvent(QShowEvent *event)
             ui->widget->addClip(ids[j%3],clip);
         }
     }
+    //ui->widget->updateMaxDuration();
     ui->widget->adaptTimelineLength();
     iw.stop();
     qDebug()<<iw.milliSecond()<<"ms after show event finished";

@@ -14,6 +14,7 @@ private:
     QRectF m_drawRect;
 public:
     explicit ShadowClipItem(const QString& key): m_key(key){
+        setZValue(10);
     }
     void setDrawRect(const QRectF&rec);
     void forceUpdate();

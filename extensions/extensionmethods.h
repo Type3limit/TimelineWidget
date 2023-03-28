@@ -23,7 +23,7 @@ public:
     ///get the first element that matched with condition,need pass the total count of array,if there has no matched one,return defaultValue
     static inline finderType firstOf(const finderType *sources,
                                      const int count,
-                                     const std::function<bool(finderType)> &MatchFunction,
+                                     const std::function<bool( finderType)> &MatchFunction,
                                      const finderType defaultValue)
     {
         finderType result = defaultValue;
@@ -37,7 +37,7 @@ public:
     }
     ///get the first element of QList that matched with condition,if there has no matched one,return defaultValue
     static inline finderType firstOf(const QList<finderType> &sources,
-                                     const std::function<bool(finderType)> &MatchFunction,
+                                     const std::function<bool( finderType)> &MatchFunction,
                                      const finderType defaultValue)
     {
         finderType result = defaultValue;

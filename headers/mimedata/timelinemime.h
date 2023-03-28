@@ -318,7 +318,7 @@ public:
             auto curPos = std::max_element(curTrack.clips.begin(), curTrack.clips.end(),
                                            [&](const ClipMime &left, const ClipMime &right) -> bool
                                            {
-                                               return left.startPos + left.duration <= right.startPos + right.duration;
+                                               return left.endPosition() < right.endPosition();
                                            });
 
             if (curPos == curTrack.clips.end())

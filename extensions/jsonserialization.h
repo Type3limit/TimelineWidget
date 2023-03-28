@@ -13,6 +13,6 @@
 // example:FROM_JSON(T Object,const char* src)//the json like string data will be writen in Object;
 #define FROM_JSON iguana::json::from_json
 
-typedef iguana::string_stream sstream;
+typedef iguana::string_stream S_STREAM;
 
 #endif //JSONSERIALIZATION_H

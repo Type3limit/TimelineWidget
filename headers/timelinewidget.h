@@ -101,9 +101,9 @@ public:
     ///切片所有被选中的切片
     void setClipMovement(int xDiff, int yDiff);
     ///添加切片到指定轨道
-    void addClip(const QString &trackKey, const ClipMime &mime, bool shouldEmitSignal = true);
+    void addClip(const QString &trackKey, const ClipMime &mime, bool shouldEmitSignal = true,bool shouldUpdateMaxDuration = true);
     ///添加切片到指定轨道
-    void addClip(int index, ClipMime &mime, bool shouldEmitSignal = true);
+    void addClip(int index, ClipMime &mime, bool shouldEmitSignal = true,bool shouldUpdateMaxDuration = true);
     ///去除特定切片
     void removeClip(const ClipMime &clipData, bool searchWhenTrackKeyEmpty = true, bool shouldEmitSignal = true);
     ///修改切片信息

@@ -74,8 +74,7 @@ void TrackBodyDrawingView::wheelEvent(QWheelEvent *event)
         QGraphicsView::wheelEvent(event);
     }
     event->ignore();
-    auto curRect = getViewPortRect();
-    update(QRect((int)curRect.x(), (int)curRect.y(), (int)curRect.width(), (int)curRect.height()));
+    update(getViewPortRect().toRect());
 }
 void TrackBodyDrawingView::mouseMoveEvent(QMouseEvent *evt)
 {
@@ -181,7 +180,7 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
         if (m_selectionStart.x() >= m_selectionEnd.x() && m_selectionStart.y() >= m_selectionEnd.y())
             selectionRect = QRectF(m_selectionEnd, m_selectionStart);
 
-        auto curSelectionItem = this->scene()->items(selectionRect, Qt::IntersectsItemBoundingRect);
+        auto curSelectionItem = this->scene()->items(selectionRect);
         QList<ClipItem *> curSelectedClip;
         std::for_each(curSelectionItem.begin(), curSelectionItem.end(), [&](QGraphicsItem *curItem) -> void
         {
