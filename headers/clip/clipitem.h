@@ -14,13 +14,13 @@
 class ClipItem: public QGraphicsItem
 {
 public:
-    explicit ClipItem(QGraphicsItem* parent=nullptr);
-    explicit ClipItem(const QString& key, QGraphicsItem* parent=nullptr);
+    explicit ClipItem(QGraphicsItem *parent = nullptr);
+    explicit ClipItem(const QString &key, QGraphicsItem *parent = nullptr);
     ~ClipItem();
-    bool insertToTrack(const QString& trackKey);
+    bool insertToTrack(const QString &trackKey);
     bool removeFromTrack();
-    ClipMime getMimeData(const QString& clipKey, bool searchWhenTrackKeyEmpty = true) const;
-    TrackMime getTrackData(const QString& trackKey, bool searchWhenTrackKeyEmpty = true)const;
+    ClipMime getMimeData(const QString &clipKey, bool searchWhenTrackKeyEmpty = true) const;
+    TrackMime getTrackData(const QString &trackKey, bool searchWhenTrackKeyEmpty = true) const;
     void forceUpdate();
 protected:
     QRectF boundingRect() const override;
@@ -30,36 +30,36 @@ protected:
     void hoverLeaveEvent(QGraphicsSceneHoverEvent *event) override;
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 private:
     void init();
-    void clipDrag(int x,int y);
+    void clipDrag(int x, int y);
     void removeShadow();
     ClipMime stopClipDrag(bool isMultiMode = false);
-    bool checkForCollision(ClipMime& mime, const QString& originTrackKey="");
-    bool preCheckForCollision(ClipMime& mime, TrackMime &targetTrack);
-    void checkExpandHandle(const QRectF& clipRect);
-    ulong getStartPosAfterDragMove(ClipMime& mime);
+    bool checkForCollision(ClipMime &mime, const QString &originTrackKey = "");
+    bool preCheckForCollision(ClipMime &mime, TrackMime &targetTrack);
+    void checkExpandHandle(const QRectF &clipRect);
+    ulong getStartPosAfterDragMove(ClipMime &mime);
 private:
     volatile bool m_isGrouped = false;
-    volatile bool m_isDragMoved= false;
-    volatile bool m_isOnHover= false;
+    volatile bool m_isDragMoved = false;
+    volatile bool m_isOnHover = false;
     volatile bool m_isMouseDrag = false;
-    volatile bool m_shouldIgnoreMultiTrackAdd =false;
-    volatile bool m_isLeftExpand =false;
+    volatile bool m_isLeftExpand = false;
     volatile bool m_isRightExpand = false;
-    volatile bool m_isRemoved= false;
-    QPointF m_prePoint ;
+    volatile bool m_isRemoved = false;
+    QPointF m_prePoint;
     QString m_groupId;
     QString m_mimeKey;
     QString m_trackMimeKey;
-    QString m_multiSelectionPrefixedTrackKey="";
+
     QRectF m_shadowRect;
     QRectF m_originRect;
-    ShadowClipItem* m_shadow = nullptr;
-    ClipDragHandle* m_leftHandle = nullptr;
-    ClipDragHandle* m_rightHandle = nullptr;
+    ShadowClipItem *m_shadow = nullptr;
+    ClipDragHandle *m_leftHandle = nullptr;
+    ClipDragHandle *m_rightHandle = nullptr;
+    //for test
     QPixmap m_image;
 
     friend class TimelineWidget;

@@ -38,6 +38,7 @@ void ClipItem::init()
     m_shadow = new ShadowClipItem(m_mimeKey);
     m_leftHandle = new ClipDragHandle(this);
     m_rightHandle = new ClipDragHandle(this);
+    //for test
     m_image.load("./test.png");
 }
 void ClipItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -340,8 +341,6 @@ ulong ClipItem::getStartPosAfterDragMove(ClipMime &curMime)
 }
 void ClipItem::clipDrag(int x, int y)
 {
-    m_shouldIgnoreMultiTrackAdd = false;
-    m_multiSelectionPrefixedTrackKey = "";
     if (this->scene() == nullptr)
         return;
     if (!m_isDragMoved) {
