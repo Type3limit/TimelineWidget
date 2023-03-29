@@ -754,7 +754,7 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
     }
 
     m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
-    removeEmptyTrack();
+    //removeEmptyTrack();
 }
 
 QList<ClipItem *> TimelineWidget::getAllSelectedClip()

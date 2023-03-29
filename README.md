@@ -29,3 +29,5 @@ Json serialize tool is come from a cool repository:[iguana](https://github.com/q
 - [ ] add: track body key frame options.
 
 - [ ] add: track body appearance.
+
+- [ ] add: all options migrated with revocable actions 
