@@ -126,9 +126,11 @@ public:
 
 private:
     ///移动选中的切片
-    void clipMoved(int x, int y, bool isOver);
+    void clipMoved(double x, double y, bool isOver,bool posNotChange);
+    ///对切片的移动量进行修正
+    void alterClipMovement(double x, double y);
     ///处理多切片选择移动。
-    void multiClipCollied(const QMap<TrackMime, QList<ClipMime>>& movement);
+    void multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &movement, bool posNotMoved);
 #pragma  endregion
 #pragma endregion
 

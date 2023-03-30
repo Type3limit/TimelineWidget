@@ -250,6 +250,7 @@ public:
         return source;
     }
 
+    //in QMap ,find which key is contained the specific value.
     template<typename param>
     static inline param whichHasValue(const QMap<param,QList<finderType>>& map,finderType valueToFind,
                                       std::function<bool(const finderType& l,const finderType& r)>matchFunc)
@@ -271,6 +272,22 @@ public:
             }
         }
         return v;
+    }
+    //statistic with QList,get the same
+    template<typename prop>
+    static inline QMap<prop,int> countSummary(const QList<finderType>& source,std::function<prop(finderType)>getProp)
+    {
+        QMap<prop,int> result;
+        if(source.empty())
+            return result;
+        for(auto itr : source)
+        {
+            auto property = getProp(itr);
+            if(!result.contains(property))
+                result.insert(property,0);
+            ++result[property];
+        }
+        return result;
     }
 };
 

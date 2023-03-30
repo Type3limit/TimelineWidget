@@ -7,8 +7,8 @@
 
 
 #include <QGraphicsItem>
-#include "MimeData/clipmime.h"
-#include "MimeData/trackmime.h"
+#include "mimedata/clipmime.h"
+#include "mimedata/trackmime.h"
 #include "shadowclipitem.h"
 #include "clipdraghandle.h"
 class ClipItem: public QGraphicsItem
@@ -34,13 +34,13 @@ protected:
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *event) override;
 private:
     void init();
-    void clipDrag(int x, int y);
+    void clipDrag(double x, double y);
     void removeShadow();
-    ClipMime stopClipDrag(bool isMultiMode = false);
+    ClipMime stopClipDrag(bool &isSceneNull, bool posNotMove, bool isMultiMode = false);
     bool checkForCollision(ClipMime &mime, const QString &originTrackKey = "");
     bool preCheckForCollision(ClipMime &mime, TrackMime &targetTrack);
     void checkExpandHandle(const QRectF &clipRect);
-    ulong getStartPosAfterDragMove(ClipMime &mime);
+    double getStartPosAfterDragMove(ClipMime &mime,bool shouldIgnorePos);
 private:
     volatile bool m_isGrouped = false;
     volatile bool m_isDragMoved = false;
@@ -50,6 +50,7 @@ private:
     volatile bool m_isRightExpand = false;
     volatile bool m_isRemoved = false;
     QPointF m_prePoint;
+    QPointF m_originPoint;
     QString m_groupId;
     QString m_mimeKey;
     QString m_trackMimeKey;

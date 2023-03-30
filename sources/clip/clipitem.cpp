@@ -2,7 +2,7 @@
 // Created by 58226 on 2023/2/9.
 //
 
-#include "Clip/clipitem.h"
+#include "clip/clipitem.h"
 #include "timelinedefination.h"
 #include "timelinewidget.h"
 #include "intervalwatcher.h"
@@ -135,6 +135,7 @@ bool ClipItem::insertToTrack(const QString &trackKey)
 }
 bool ClipItem::removeFromTrack()
 {
+    removeShadow();
     if (m_leftHandle->isAddToScene()) {
         m_leftHandle->setAddToScene(false);
         this->scene()->removeItem(m_leftHandle);
@@ -183,6 +184,7 @@ QVariant ClipItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QV
 void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     m_prePoint = event->scenePos();
+    m_originPoint = event->scenePos();
     if (event->button() == Qt::MouseButton::LeftButton) {
         if (QApplication::keyboardModifiers().testFlag(Qt::ControlModifier)) {
             timeline()->setSelectedClip(QList<QString>{m_mimeKey}, timeline()->isSelected(m_mimeKey));
@@ -208,7 +210,7 @@ void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
                     this->scene()->addItem(m_shadow);
                 }
                 else {
-                    timeline()->clipMoved(0, 0, false);
+                    timeline()->clipMoved(0, 0, false,m_originPoint.x()==m_prePoint.x());
                     m_isMouseDrag = true;
                 }
             }
@@ -223,12 +225,13 @@ void ClipItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 }
 void ClipItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
+    auto curPos = event->scenePos();
     auto curMime = getMimeData(m_mimeKey, true);
     //drag move
     if (m_isMouseDrag) {
         event->accept();
         m_isMouseDrag = false;
-        timeline()->clipMoved(0, 0, true);
+        timeline()->clipMoved(0, 0, true,m_originPoint.x()==m_prePoint.x());
     }
         //left expand
     else if (m_isLeftExpand) {
@@ -268,7 +271,10 @@ void ClipItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     if (m_isMouseDrag) {
 
         m_prePoint = event->scenePos();
-        timeline()->clipMoved((int)xDelta, (int)yDelta, false);
+        if(xDelta!=0||yDelta!=0)
+        {
+            timeline()->clipMoved(xDelta, yDelta, false,false);
+        }
         event->accept();
     }
     else if (m_isLeftExpand || m_isRightExpand) {
@@ -324,7 +330,7 @@ void ClipItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
     QGraphicsItem::hoverLeaveEvent(event);
 }
-ulong ClipItem::getStartPosAfterDragMove(ClipMime &curMime)
+double ClipItem::getStartPosAfterDragMove(ClipMime &curMime,bool shouldIgnore)
 {
     //auto xDelta = m_shadowRect.x() - m_originRect.x();
     if (curMime.isDefaultData()) {
@@ -332,14 +338,14 @@ ulong ClipItem::getStartPosAfterDragMove(ClipMime &curMime)
     }
     if (curMime.isDefaultData())
         return 0;
+    if(shouldIgnore)
+        return curMime.startPos;
     //auto curFrameMoved = (long)ceil(xDelta * timeline()->percentPerUnit());
-    long curX = (long)(mapFromScene(m_shadowRect).boundingRect().x() * timeline()->percentPerUnit());//curMime.startPos;
+    auto curX = (mapFromScene(m_shadowRect).boundingRect().x() * timeline()->percentPerUnit());//curMime.startPos;
     //qDebug()<<"with "<<curX<<":["<<mapFromScene(m_shadowRect).boundingRect().x()<<","<<timeline()->percentPerUnit()<<"]";
-    return curX < 0 ? 0 :
-           (curX > timeline()->maxDuration() ?
-            timeline()->maxDuration() : curX);
+    return curX;
 }
-void ClipItem::clipDrag(int x, int y)
+void ClipItem::clipDrag(double x, double y)
 {
     if (this->scene() == nullptr)
         return;
@@ -357,15 +363,28 @@ void ClipItem::clipDrag(int x, int y)
         }
     }
 }
-ClipMime ClipItem::stopClipDrag(bool isMultiMode)
+ClipMime ClipItem::stopClipDrag(bool &isSceneNull, bool posNotMove, bool isMultiMode)
 {
     if (this->scene() == nullptr)
+    {
+        isSceneNull = true;
         return {};
+    }
     auto curMime = getMimeData(m_mimeKey);
     if (m_isDragMoved) {
-        curMime.startPos = getStartPosAfterDragMove(curMime);
+
+        auto curPos = getStartPosAfterDragMove(curMime,posNotMove);
+        if(curPos<0)
+        {
+            //qDebug()<<"adjust with:"<<(abs(curPos)/timeline()->percentPerUnit());
+            timeline()->alterClipMovement((abs(curPos)/timeline()->percentPerUnit()),0);
+            return {};
+        }
+        //qDebug()<<"origin with "<<curMime.startPos<<"after is:"<<curPos;
+        curMime.startPos =(ulong)(curPos<0?0:curPos);
         if (isMultiMode) {
-            timeline()->alterClipData(curMime.id, m_trackMimeKey, curMime);
+
+            timeline()->alterClipData(curMime.id, m_trackMimeKey, curMime);//change X pos only, track pos changed outside;
             if (!m_isRemoved) {
                 forceUpdate();
                 checkExpandHandle(boundingRect());
@@ -507,10 +526,10 @@ bool ClipItem::checkForCollision(ClipMime &curMime, const QString &originTrackKe
         }
 
         //for tail ,if front space is not enough,move tail clips.
-        if (tailClips.count() > 0 && tailClips[0].startPos < curMime.startPos + curMime.duration) {
+        if (tailClips.count() > 0 && tailClips[0].startPos < curMime.endPosition()) {
             for (int i = 0; i < tailClips.count(); i++) {
 
-                tailClips[i].startPos += (curMime.duration + diffDelta);
+                tailClips[i].startPos += ((curMime.endPosition()-tailClips[0].startPos) + diffDelta);
                 timeline()->alterClipData(tailClips[i].id, tailClips[i].trackId, tailClips[i]);
             }
 
@@ -559,7 +578,8 @@ void ClipItem::checkExpandHandle(const QRectF &clipRect)
 bool ClipItem::preCheckForCollision(ClipMime &mime, TrackMime &targetTrack)
 {
     auto curMime = getMimeData(m_mimeKey);
-    curMime.startPos = getStartPosAfterDragMove(curMime);
+    auto curPos = getStartPosAfterDragMove(curMime,m_prePoint.x()==m_originPoint.x());
+    curMime.startPos = curPos<0?0:curPos;
     //bool isChangeTrack = false;
     //auto originTrackKey = curMime.trackId;
     auto currentCollisionItems = ExtensionMethods::SourcesExtension<QGraphicsItem *>
@@ -608,8 +628,12 @@ void ClipItem::removeShadow()
         m_shadow->forceUpdate();
     }
     m_shadowRect = boundingRect();
-    if (scene()->items().contains(m_shadow))
-        scene()->removeItem(m_shadow);
+    if(scene()!=nullptr)
+    {
+        if (scene()->items().contains(m_shadow))
+            scene()->removeItem(m_shadow);
+    }
+
 }
 
 

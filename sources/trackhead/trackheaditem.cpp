@@ -4,7 +4,7 @@
 
 #include <utility>
 
-#include "TrackHead/trackheaditem.h"
+#include "trackHead/trackheaditem.h"
 #include "timelinewidget.h"
 #include <QStyleOptionGraphicsItem>
 #define TimelineInstance() (GET_POINTER<TimelineWidget>())
@@ -60,6 +60,8 @@ TrackMime TrackHeadItem::getMimeData() const
 void TrackHeadItem::forceUpdate()
 {
     prepareGeometryChange();
+    update();
 }
+
 
 

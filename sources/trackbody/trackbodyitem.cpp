@@ -2,7 +2,7 @@
 // Created by 58226 on 2023/2/7.
 //
 
-#include "TrackBody/trackbodyitem.h"
+#include "trackBody/trackbodyitem.h"
 #include "timelinedefination.h"
 #include <QStyleOptionGraphicsItem>
 #include "timelinewidget.h"
@@ -43,6 +43,7 @@ TrackMime TrackBodyItem::getMimeData() const
 void TrackBodyItem::forceUpdate()
 {
     prepareGeometryChange();
+    update();
 }
 QRectF TrackBodyItem::boundingRect() const
 {
@@ -55,7 +56,7 @@ QRectF TrackBodyItem::boundingRect() const
         yIndex += (curArea.height() - trackBodyHeight) / 2.0;
     }
     return {0, static_cast<qreal>(yIndex),
-            static_cast<qreal>((TimelineInstance()->maxDuration() / TimelineInstance()->frameTick()) * MIN_TICK_WIDTH),
+            static_cast<qreal>((TimelineInstance()->maxDuration() / (qreal)TimelineInstance()->frameTick()) * MIN_TICK_WIDTH),
             TRACK_HEIGHT};
 }
 void TrackBodyItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -97,6 +98,7 @@ void TrackBodyItem::removeClipItem(const QString &itemKey)
     curItem->m_isRemoved = true;
     m_clips.remove(itemKey);
     this->scene()->removeItem(curItem);
+
     if(m_removeLists.count()>=2)
         //不立即删除，信号发送与接受执行不是同步完成的
         // 后续部分可能有用到被删除的ClipItem指针
@@ -104,7 +106,7 @@ void TrackBodyItem::removeClipItem(const QString &itemKey)
     {
         while(m_removeLists.count()<2)
         {
-            SAFE_DELETE(m_removeLists.front());
+            delete m_removeLists.front();
             m_removeLists.pop_front();
         }
     }

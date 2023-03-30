@@ -13,6 +13,8 @@ all the widgets can be serialized to json or xml ,which is also can deserialize 
 Json serialize tool is come from a cool repository:[iguana](https://github.com/qicosmos/iguana),special thanks for [qicosmos](https://github.com/qicosmos).
 
 
+## Preview:
+![img.png](img.png)
 
 ## ToDo:
 

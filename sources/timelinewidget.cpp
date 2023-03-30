@@ -5,11 +5,11 @@
 // You may need to build the project (run Qt uic code generator) to get "ui_TimelineWidget.h" resolved
 
 #include "timelinewidget.h"
-#include "../Forms/ui_timelinewidget.h"
-#include "Tick/tickdrawingview.h"
-#include "Ruler/rulerdrawingview.h"
-#include "TrackHead/trackheaddrawingview.h"
-#include "TrackBody/trackbodydrawingview.h"
+#include "../forms/ui_timelinewidget.h"
+#include "tick/tickdrawingview.h"
+#include "ruler/rulerdrawingview.h"
+#include "trackhead/trackheaddrawingview.h"
+#include "trackbody/trackbodydrawingview.h"
 #include "extensionmethods.h"
 #include "timelinedefination.h"
 #include "intervalwatcher.h"
@@ -363,7 +363,10 @@ void TimelineWidget::removeTrack(const QString &key)
 #pragma  endregion
 
 #pragma region clip option
-void TimelineWidget::addClip(const QString &trackKey, const ClipMime &mime, bool shouldEmitSignal,bool shouldUpdateMaxDuration)
+void TimelineWidget::addClip(const QString &trackKey,
+                             const ClipMime &mime,
+                             bool shouldEmitSignal,
+                             bool shouldUpdateMaxDuration)
 {
     TrackMime cur;
     if (!m_timelineData.getTrack(cur, [&](const TrackMime &x) -> bool
@@ -378,8 +381,7 @@ void TimelineWidget::addClip(const QString &trackKey, const ClipMime &mime, bool
     if (shouldEmitSignal) {
         emit TrackClipChanged(trackKey, mime.id, 1);
     }
-    if(shouldUpdateMaxDuration&&mime.endPosition()>(maxDuration()/1.5))
-    {
+    if (shouldUpdateMaxDuration && mime.endPosition() > (maxDuration() / 1.5)) {
         updateMaxDuration();
     }
 }
@@ -409,18 +411,12 @@ void TimelineWidget::removeClip(const ClipMime &clipKey, bool searchWhenTrackKey
         }
     }
     m_timelineData.removeClip(searchTrack.id, clipKey.id);
-//    if (searchTrack.clips.size() == 1) {
-//        if (m_timelineData.getTrack(searchTrack, clipKey.trackId)) {
-//            if (searchTrack.clips.empty())
-//                removeTrack(clipKey.trackId);
-//        }
-//    }
     if (shouldEmitSignal) {
         emit TrackClipChanged(searchTrack.id, clipKey.id, -1);
     }
 
 }
-void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal,bool shouldUpdateMaxDuration)
+void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal, bool shouldUpdateMaxDuration)
 {
     TrackMime cur;
     auto actualTrackSize = (int)m_timelineData.tracks.size();
@@ -439,8 +435,7 @@ void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal,bo
     if (shouldEmitSignal) {
         emit TrackClipChanged(cur.id, mime.id, 1);
     }
-    if(shouldUpdateMaxDuration&&mime.endPosition()>(maxDuration()/1.5))
-    {
+    if (shouldUpdateMaxDuration && mime.endPosition() > (maxDuration() / 1.5)) {
         updateMaxDuration();
     }
 }
@@ -538,6 +533,7 @@ void TimelineWidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
         });
     }
     else {
+        m_selectedClips.clear();
         std::for_each(clips.begin(), clips.end(), [&](const QString &curClip) -> void
         {
             if (!m_selectedClips.contains(curClip)) {
@@ -561,6 +557,7 @@ void TimelineWidget::setSelectedClip(const QList<ClipItem *> &clips, bool isCanc
         m_trackBodyView->update();
     }
     else {
+        m_selectedClips.clear();
         std::for_each(clips.begin(), clips.end(), [&](ClipItem *curClip) -> void
         {
             if (curClip == nullptr)
@@ -655,7 +652,7 @@ void TimelineWidget::updateMaxDuration()
     auto curLastClip = m_timelineData.getLastClip();
     if (curLastClip.isDefaultData())
         return;
-    if(curLastClip.endPosition()<(maxDuration()/1.5))
+    if (curLastClip.endPosition() < (maxDuration() / 1.5))
         return;
     //qDebug()<<"current Last"<<curLastClip.startPos+curLastClip.duration;
     auto curMax = maxDuration();
@@ -686,7 +683,7 @@ void TimelineWidget::adaptTimelineLength()
     update();
     forceUpdate(Area::RightBottom);
 }
-void TimelineWidget::clipMoved(int x, int y, bool isOver)
+void TimelineWidget::clipMoved(double x, double y, bool isOver,bool posNotMoved)
 {
     if (isOver && m_selectedClips.count() > 1)//multi clips process
     {
@@ -703,11 +700,9 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
             }
             TrackMime curTrackData;
             hasCollision = m_selectedClipsCache[clipKey]->preCheckForCollision(colliedMime, curTrackData);
-            if(!hasCollision&&curTrackData.isDefaultData())
-            {
+            if (!hasCollision && curTrackData.isDefaultData()) {
                 //outOfTrackCount = true;
-                for (const auto &st: m_selectedClips)
-                {
+                for (const auto &st: m_selectedClips) {
                     m_selectedClipsCache[st]->removeShadow();
                 }
                 return;
@@ -724,22 +719,37 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
             }
         }
         if (!atLeastOne) {//if no collision,just move them to the right track.
-            std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &clipKey) -> void
+            for(int i =0;i<m_selectedClips.count();i++)
             {
-                if (!m_selectedClipsCache.contains(clipKey)) {
-                    return;
+                if (!m_selectedClipsCache.contains(m_selectedClips[i])) {
+                    continue;
                 }
-                m_selectedClipsCache[clipKey]->stopClipDrag();
-            });
+                bool isSceneNull=false;
+                auto currentMode = m_selectedClipsCache[m_selectedClips[i]]->stopClipDrag(isSceneNull, posNotMoved, false);
+                if(!isSceneNull&&currentMode.isDefaultData())
+                {
+                    for(int j =0;j<m_selectedClips.count();j++)
+                    {
+                        if (!m_selectedClipsCache.contains(m_selectedClips[j])) {
+                            continue;
+                        }
+                        m_selectedClipsCache[m_selectedClips[j]]->removeShadow();
+                    }
+                    i=0;
+                    qDebug()<<"reset loop";
+                    continue;
+                }
+            }
         }
         else {
-            multiClipCollied(movements);
+            multiClipCollied(movements, false);
 
         }
     }
     else {
-        std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &clipKey) -> void
+        for(int i=0;i<m_selectedClips.count();i++)
         {
+            auto clipKey = m_selectedClips[i];
             if (!m_selectedClipsCache.contains(clipKey)) {
                 return;
             }
@@ -747,15 +757,35 @@ void TimelineWidget::clipMoved(int x, int y, bool isOver)
                 m_selectedClipsCache[clipKey]->clipDrag(x, y);
             }
             else {
-                m_selectedClipsCache[clipKey]->stopClipDrag();
+                bool isSceneNull = false;
+                auto curMode = m_selectedClipsCache[clipKey]->stopClipDrag(isSceneNull, posNotMoved, false);
+                if(!isSceneNull&&curMode.isDefaultData())
+                {
+                    i=0;
+                    qDebug()<<"restart clips loop";
+                    continue;
+                }
             }
-        });
+        }
         updateMaxDuration();
     }
 
     m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
     //removeEmptyTrack();
 }
+
+void TimelineWidget::alterClipMovement(double x, double y)
+{
+    qDebug()<<"adjust with:"<<x<<","<<y;
+    for(const auto& clipKey:m_selectedClips )
+    {
+        if (!m_selectedClipsCache.contains(clipKey)) {
+            continue;
+        }
+        m_selectedClipsCache[clipKey]->clipDrag(x, y);
+    }
+}
+
 
 QList<ClipItem *> TimelineWidget::getAllSelectedClip()
 {
@@ -769,10 +799,11 @@ QList<ClipItem *> TimelineWidget::getAllSelectedClip()
     return result;
 }
 
-void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &movements)
+void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &movements, bool posNotMoved)
 {
 
-
+    intervalwatcher iw;
+    iw.start();
     //get all selected mime data
     auto selectedClips = ExtensionMethods::SourcesExtension<QString>::select<ClipMime>(m_selectedClips,
                                                                                        [&](const QString &clipKey) -> ClipMime
@@ -816,9 +847,9 @@ void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &mo
                       addIndex)) {
             qDebug() << "try add new Track failed!";
             auto newTracks = newTracksRef.keys();
-            for (const auto &removeKey: newTracks)//cancel track added
+            for(int i =0;i<newTracks.count();i++)
             {
-                removeTrack(newTracksRef[removeKey]);
+                removeTrack(newTracksRef[newTracks[i]]);
             }
             return;
         }
@@ -835,8 +866,17 @@ void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &mo
         auto curKey = trackKeys[i];
         auto curMimes = trackClips[curKey];
         TrackMime clipOriginTrack = TrackData[curKey];
-        for (const auto &curMime: curMimes) {
-            auto movedMime = m_selectedClipsCache[curMime.id]->stopClipDrag(true);
+        for(int j=0;j<curMimes.count();j++)
+        {
+            auto curMime = curMimes[j];
+            bool isSceneNull = false;
+            auto movedMime = m_selectedClipsCache[curMime.id]->stopClipDrag(isSceneNull, posNotMoved, true);
+            if(!isSceneNull&& movedMime.isDefaultData())
+            {
+                j=0;
+                qDebug()<<"reset loop with multi clip drag";
+                continue;
+            }
             auto trackInfo = ExtensionMethods::SourcesExtension<ClipMime>
             ::whichHasValue<TrackMime>(movements, movedMime,
                                        [](const ClipMime &l, const ClipMime &r)
@@ -845,10 +885,11 @@ void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &mo
                 movedMime.trackId = newTracksRef[trackInfo];
                 alterClipData(movedMime.id, clipOriginTrack.id, movedMime);
             }
-
         }
     }
-
+    iw.stop();
+    qDebug()<<""<<iw.milliSecond()<<"ms after multi clip drag";
+    forceUpdate(RightBottom);
 }
 
 #pragma  endregion
@@ -897,12 +938,13 @@ bool TimelineWidget::buildFromJson(const QString &data)
 }
 void TimelineWidget::removeEmptyTrack()
 {
-    auto emptyTracks = ExtensionMethods::SourcesExtension<TrackMime>::where({m_timelineData.tracks.begin(),m_timelineData.tracks.end()},[&](const TrackMime& curTrack)->bool
-    {
-       return curTrack.clips.empty();
-    });
-    for(int i =0 ;i<emptyTracks.size();i++)
-    {
+    auto emptyTracks = ExtensionMethods::SourcesExtension<TrackMime>::where({m_timelineData.tracks.begin(),
+                                                                             m_timelineData.tracks.end()},
+                                                                            [&](const TrackMime &curTrack) -> bool
+                                                                            {
+                                                                                return curTrack.clips.empty();
+                                                                            });
+    for (int i = 0; i < emptyTracks.size(); i++) {
         removeTrack(emptyTracks[i].id);
     }
 }

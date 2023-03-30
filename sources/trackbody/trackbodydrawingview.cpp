@@ -2,7 +2,7 @@
 // Created by 58226 on 2023/2/6.
 //
 
-#include "TrackBody/trackbodydrawingview.h"
+#include "trackBody/trackbodydrawingview.h"
 #include <QEvent>
 #include <QKeyEvent>
 #include <QApplication>
@@ -28,7 +28,7 @@ TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     connect(TimelineInstance(), &TimelineWidget::PositionChanged,
             this, &TrackBodyDrawingView::onCursorPosChanged, Qt::ConnectionType::QueuedConnection);
     connect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this,
-            &TrackBodyDrawingView::clipChanged, Qt::ConnectionType::QueuedConnection);
+            &TrackBodyDrawingView::clipChanged, Qt::ConnectionType::AutoConnection);
     connect(TimelineInstance(), &TimelineWidget::ClipUpdated, this,
             &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::AutoConnection);
     setMouseTracking(true);
@@ -99,6 +99,8 @@ void TrackBodyDrawingView::mouseMoveEvent(QMouseEvent *evt)
         m_selectionEnd = mapToScene(evt->pos());
         m_selectObj->setPos(m_selectionStart, m_selectionEnd);
         m_selectObj->prepareGeometryChange();
+        m_selectObj->update();
+        update(getViewPortRect().toRect());
         evt->accept();
     }
     if (!evt->modifiers().testFlag(Qt::ShiftModifier) && evt->buttons().testFlag(Qt::LeftButton)) {
@@ -191,6 +193,7 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
         });
 
         TimelineInstance()->setSelectedClip(curSelectedClip, curSelectedClip.empty());
+        update(getViewPortRect().toRect());
         event->accept();
     }
     else {

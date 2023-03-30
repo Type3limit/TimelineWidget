@@ -89,7 +89,10 @@ bool TrackHeadDrawingView::deleteTrackHead(const QString& key)
     if(m_headItems.contains(key)) {
 
         auto org = m_headItems[key];
-        scene()->removeItem(org);
+        if(this->scene()!=nullptr)
+        {
+            scene()->removeItem(org);
+        }
         m_headItems.remove(key);
         SAFE_DELETE(org);
         return true;

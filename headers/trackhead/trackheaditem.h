@@ -15,7 +15,6 @@ public:
     explicit TrackHeadItem(const TrackMime& curData, QGraphicsItem* parent= nullptr);
     TrackMime getMimeData() const;
     void forceUpdate();
-
 protected:
     QRectF boundingRect()const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)override;
