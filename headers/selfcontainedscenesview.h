@@ -15,6 +15,8 @@ public:
     {
 
         setScene( getScene());
+        //bug of qt 5.15.2 ,may cased crash while delete QGraphics item.
+        scene()->setItemIndexMethod(QGraphicsScene::ItemIndexMethod::NoIndex);
         setStyleSheet("    border:  1px solid rgb(0,0,0);\n"
                       "    background-color: #28282E;\n"
                       "    font-family: \"Cascadia Code\";");//"    border-radius: 5px;\n"

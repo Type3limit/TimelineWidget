@@ -199,7 +199,6 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
     }
     else {
         QGraphicsView::mouseReleaseEvent(event);
-        removeAllDeletedClip();
     }
 }
 void TrackBodyDrawingView::scrollToCursor()

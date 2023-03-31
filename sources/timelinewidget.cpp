@@ -774,7 +774,8 @@ void TimelineWidget::clipMoved(double x, double y, bool isOver,bool posNotMoved)
         updateMaxDuration();
     }
     m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
-
+    m_trackBodyView->removeAllDeletedClip();
+    removeEmptyTrack();
 }
 
 void TimelineWidget::alterClipMovement(double x, double y)
@@ -844,7 +845,7 @@ void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &mo
     QMap<TrackMime, QString> newTracksRef;
     //get tracks mime data,find maximal index and the minimum
     for (const auto &itr: tracks) {
-        auto addIndex = (maxTrack->index < 0) ? 0 : (maxTrack->index);
+        auto addIndex = (itr.index < 0) ? 0 : (itr.index);
         auto newTrackId = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
         if (!addTrack(newTrackId, itr.type,
                       addIndex)) {
