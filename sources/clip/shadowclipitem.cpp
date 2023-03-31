@@ -4,6 +4,11 @@
 
 #include "Clip/shadowclipitem.h"
 #include <QPainter>
+#include <qdebug.h>
+ShadowClipItem::~ShadowClipItem()
+{
+    qDebug()<<"delete shadow";
+}
 void ShadowClipItem::setDrawRect(const QRectF &rec)
 {
     m_drawRect = rec;

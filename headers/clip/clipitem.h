@@ -57,14 +57,15 @@ private:
 
     QRectF m_shadowRect;
     QRectF m_originRect;
-    ShadowClipItem *m_shadow = nullptr;
-    ClipDragHandle *m_leftHandle = nullptr;
-    ClipDragHandle *m_rightHandle = nullptr;
+    ShadowClipItem* m_shadow = nullptr;
+    ClipDragHandle* m_leftHandle = nullptr;
+    ClipDragHandle* m_rightHandle = nullptr;
     //for test
     QPixmap m_image;
 
     friend class TimelineWidget;
     friend class TrackBodyItem;
+    friend class TrackBodyDrawingView;
 };
 
 

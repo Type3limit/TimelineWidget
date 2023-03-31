@@ -80,7 +80,8 @@ bool TrackHeadDrawingView::addTrackHead(const TrackMime& originData)
         return false;
     }
     auto curData = new TrackHeadItem(originData);
-    m_headItems.insert(key,curData);
+    QSharedPointer<TrackHeadItem> ptr(curData);
+    m_headItems.insert(key,ptr);
     scene()->addItem(curData);
     return true;
 }
@@ -89,24 +90,35 @@ bool TrackHeadDrawingView::deleteTrackHead(const QString& key)
     if(m_headItems.contains(key)) {
 
         auto org = m_headItems[key];
+        auto curBegin = m_headItems.begin();
+        while(curBegin!=m_headItems.end())
+        {
+            if(curBegin.key()==key)
+            {
+                m_headItems.erase(curBegin);
+                break;
+            }
+            curBegin++;
+        }
+        //m_headItems.remove(key);
         if(this->scene()!=nullptr)
         {
-            scene()->removeItem(org);
+            qDebug()<<"remove track head:"<<key;
+            scene()->removeItem(org.data());
+            //org.clear();
         }
-        m_headItems.remove(key);
-        SAFE_DELETE(org);
         return true;
     }
     qDebug()<<"delete track head failed!key:["<<key<<"]is not exist";
     return false;
 }
-TrackHeadItem *TrackHeadDrawingView::getTrackHead(const QString& key)
+QSharedPointer<TrackHeadItem> TrackHeadDrawingView::getTrackHead(const QString& key)
 {
     if(!m_headItems.contains(key))
         return nullptr;
     return m_headItems[key];
 }
-TrackHeadItem *TrackHeadDrawingView::updateTrackHead(const QString& key, TrackHeadItem*curData)
+QSharedPointer<TrackHeadItem> TrackHeadDrawingView::updateTrackHead(const QString& key, QSharedPointer<TrackHeadItem>curData)
 {
     if(!m_headItems.contains(key))
         return nullptr;
@@ -114,7 +126,6 @@ TrackHeadItem *TrackHeadDrawingView::updateTrackHead(const QString& key, TrackHe
     if(org!=curData)
     {
         m_headItems[key]=curData;
-        SAFE_DELETE(org);
     }
     return m_headItems[key];
 }
@@ -126,17 +137,21 @@ void TrackHeadDrawingView::onTrackHeadUpdate(const QString &key)
 }
 void TrackHeadDrawingView::emptyTracks()
 {
-    std::for_each(m_headItems.begin(), m_headItems.end(),[&](auto item)->void
-    {
-       if(item!=nullptr)
-       {
-           SAFE_DELETE(item);
-       }
-    });
+//    std::for_each(m_headItems.begin(), m_headItems.end(),[&](auto item)->void
+//    {
+//       if(item!=nullptr)
+//       {
+//           SAFE_DELETE(item);
+//       }
+//    });
     m_headItems.clear();
 }
 void TrackHeadDrawingView::onTrackBodyScroll(int pos)
 {
     verticalScrollBar()->setValue(pos);
     updateGeometry();
+}
+TrackHeadDrawingView::~TrackHeadDrawingView()
+{
+    m_headItems.clear();
 }

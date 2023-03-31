@@ -16,22 +16,23 @@ class TrackHeadDrawingView: public SelfContainedSceneView
 {
 public:
     explicit TrackHeadDrawingView(QWidget* parent = nullptr);
+    ~TrackHeadDrawingView();
 public:
     ///添加一个项
     bool addTrackHead(const TrackMime& originData);
     ///删除一个项
     bool deleteTrackHead(const QString& key);
     ///获取一个项
-    TrackHeadItem* getTrackHead(const QString& key);
+    QSharedPointer<TrackHeadItem> getTrackHead(const QString& key);
     ///更改一个项
-    TrackHeadItem* updateTrackHead(const QString& key, TrackHeadItem* curData);
+    QSharedPointer<TrackHeadItem> updateTrackHead(const QString& key, QSharedPointer<TrackHeadItem> curData);
     ///清楚所有项
     void emptyTracks();
 public slots:
     void onTrackHeadUpdate(const QString& key);
     void onTrackBodyScroll(int pos);
 private:
-    QMap<QString, TrackHeadItem*> m_headItems;
+    QMap<QString, QSharedPointer<TrackHeadItem>> m_headItems;
 };
 
 

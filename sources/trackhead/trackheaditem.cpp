@@ -62,6 +62,10 @@ void TrackHeadItem::forceUpdate()
     prepareGeometryChange();
     update();
 }
+TrackHeadItem::~TrackHeadItem()
+{
+qDebug()<<"   ,,,";
+}
 
 
 

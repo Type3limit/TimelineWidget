@@ -13,9 +13,10 @@ private:
     QString m_key;
     QRectF m_drawRect;
 public:
-    explicit ShadowClipItem(const QString& key): m_key(key){
+    explicit ShadowClipItem(const QString& key,QGraphicsItem* parent=nullptr): m_key(key),QGraphicsItem(parent){
         setZValue(10);
     }
+    ~ShadowClipItem();
     void setDrawRect(const QRectF&rec);
     void forceUpdate();
     QRectF boundingRect() const override;

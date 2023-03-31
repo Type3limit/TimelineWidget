@@ -28,24 +28,26 @@ TrackBodyDrawingView::TrackBodyDrawingView(QWidget *parent)
     connect(TimelineInstance(), &TimelineWidget::PositionChanged,
             this, &TrackBodyDrawingView::onCursorPosChanged, Qt::ConnectionType::QueuedConnection);
     connect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this,
-            &TrackBodyDrawingView::clipChanged, Qt::ConnectionType::AutoConnection);
+            &TrackBodyDrawingView::clipChanged, Qt::ConnectionType::DirectConnection);
     connect(TimelineInstance(), &TimelineWidget::ClipUpdated, this,
-            &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::AutoConnection);
+            &TrackBodyDrawingView::singleClipChanged, Qt::ConnectionType::DirectConnection);
     setMouseTracking(true);
-
-
-
-
 }
 TrackBodyDrawingView::~TrackBodyDrawingView()
 {
+    disconnect(TimelineInstance(), &TimelineWidget::TrackUpdated, this, &TrackBodyDrawingView::onTrackHeadUpdate);
+    disconnect(horizontalScrollBar(), &QScrollBar::sliderMoved, this, &TrackBodyDrawingView::scrolledTo);
+    disconnect(verticalScrollBar(),&QScrollBar::sliderMoved,this, &TrackBodyDrawingView::vScrolledTo);
+    disconnect(TimelineInstance(), &TimelineWidget::PositionChanged,
+            this, &TrackBodyDrawingView::onCursorPosChanged);
+    disconnect(TimelineInstance(), &TimelineWidget::TrackClipChanged, this,
+            &TrackBodyDrawingView::clipChanged);
+    disconnect(TimelineInstance(), &TimelineWidget::ClipUpdated, this,
+            &TrackBodyDrawingView::singleClipChanged);
     SAFE_DELETE(m_anchorBody)
-    ExtensionMethods::SourcesExtension<QString>::eachBy(m_bodyItems.keys(), [&](const QString &key) -> void
-    {
-        auto curItem = m_bodyItems[key];
-        SAFE_DELETE(curItem)
-    });
+    SAFE_DELETE(m_selectObj)
     m_bodyItems.clear();
+    m_clips.clear();
 }
 void TrackBodyDrawingView::scrolledTo(int pos)
 {
@@ -66,7 +68,6 @@ void TrackBodyDrawingView::vScrolledTo(int pos)
     }
     emit vScollChanged(pos);
 }
-
 
 void TrackBodyDrawingView::wheelEvent(QWheelEvent *event)
 {
@@ -183,7 +184,7 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
             selectionRect = QRectF(m_selectionEnd, m_selectionStart);
 
         auto curSelectionItem = this->scene()->items(selectionRect);
-        QList<ClipItem *> curSelectedClip;
+        QList<ClipItem*> curSelectedClip;
         std::for_each(curSelectionItem.begin(), curSelectionItem.end(), [&](QGraphicsItem *curItem) -> void
         {
             auto clipItem = dynamic_cast<ClipItem *>(curItem);
@@ -198,6 +199,7 @@ void TrackBodyDrawingView::mouseReleaseEvent(QMouseEvent *event)
     }
     else {
         QGraphicsView::mouseReleaseEvent(event);
+        removeAllDeletedClip();
     }
 }
 void TrackBodyDrawingView::scrollToCursor()
@@ -227,6 +229,7 @@ bool TrackBodyDrawingView::addTrackBody(const TrackMime &originData)
         qDebug() << "add track body failed! Already has the same key:" << key;
         return false;
     }
+    
     auto curData = new TrackBodyItem(originData);
     m_bodyItems.insert(key, curData);
     scene()->addItem(curData);
@@ -236,28 +239,29 @@ bool TrackBodyDrawingView::deleteTrackBody(const QString &key)
 {
     if (m_bodyItems.contains(key)) {
         auto org = m_bodyItems[key];
+
         scene()->removeItem(org);
         m_bodyItems.remove(key);
-        SAFE_DELETE(org)
+        qDebug()<<"remove track body:"<<key;
+        //org.clear();
         return true;
     }
     qDebug() << "delete track head failed!,key:[" << key << "]is not exist";
     return false;
 }
-TrackBodyItem *TrackBodyDrawingView::getTrackBody(const QString &key)
+TrackBodyItem* TrackBodyDrawingView::getTrackBody(const QString &key)
 {
     if (!m_bodyItems.contains(key))
         return nullptr;
     return m_bodyItems[key];
 }
-TrackBodyItem *TrackBodyDrawingView::updateTrackBody(const QString &key, TrackBodyItem *curData)
+TrackBodyItem*  TrackBodyDrawingView::updateTrackBody(const QString &key, TrackBodyItem*  curData)
 {
     if (!m_bodyItems.contains(key))
         return nullptr;
     auto org = m_bodyItems[key];
     if (org != curData) {
         m_bodyItems[key] = curData;
-        SAFE_DELETE(org)
     }
     return m_bodyItems[key];
 }
@@ -275,24 +279,24 @@ void TrackBodyDrawingView::scrollToPos(int pos)
 
 void TrackBodyDrawingView::clipChanged(const QString &trackKey, const QString &clipKey, int mode)
 {
-    auto curTrack = getTrackBody(trackKey);
-    if (!curTrack)
-        return;
+    //auto curTrack = getTrackBody(trackKey);
+    //if (!curTrack)
+        //return;
     if (mode == 1) {
-        curTrack->addClipItem(clipKey);
-        updateGeometry();
+        addClipItem(clipKey,trackKey);
+        //updateGeometry();
     }
     else if (mode == -1) {
-        curTrack->removeClipItem(clipKey);
-        update();
+        removeClipItem(clipKey);
+        //updateGeometry();
     }
 }
 void TrackBodyDrawingView::singleClipChanged(const QString &trackKey, const QString &clipKey)
 {
-    auto curTrack = getTrackBody(trackKey);
-    if (!curTrack)
-        return;
-    curTrack->updateClipItem(clipKey);
+//    auto curTrack = getTrackBody(trackKey);
+//    if (!curTrack)
+//        return;
+    updateClipItem(clipKey);
     update(getViewPortRect().toRect());
 }
 void TrackBodyDrawingView::setDrawingAreaSize(int width, int height)
@@ -305,12 +309,12 @@ void TrackBodyDrawingView::setDrawingAreaSize(int width, int height)
 }
 void TrackBodyDrawingView::emptyTracks()
 {
-    std::for_each(m_bodyItems.begin(), m_bodyItems.end(), [&](auto item) -> void
-    {
-        if (item != nullptr) {
-            SAFE_DELETE(item);
-        }
-    });
+//    std::for_each(m_bodyItems.begin(), m_bodyItems.end(), [&](auto item) -> void
+//    {
+//        if (item != nullptr) {
+//            SAFE_DELETE(item);
+//        }
+//    });
     m_bodyItems.clear();
 }
 void TrackBodyDrawingView::onCursorPosChanged(ulong pos)
@@ -323,6 +327,73 @@ int TrackBodyDrawingView::getVScroll()
 {
     auto vBar = verticalScrollBar();//->y();
     return vBar->value();
+}
+
+void TrackBodyDrawingView::removeAllDeletedClip()
+{
+    //return;
+    for(ClipItem* cur:m_removedClips)
+    {
+        //cur->deleteLater();
+        SAFE_DELETE(cur);
+        if(scene()->items().contains(cur))
+        {
+            qDebug()<<"still in scene";
+        }
+    }
+    m_removedClips.clear();
+}
+
+void TrackBodyDrawingView::addClipItem(const QString &itemKey,const QString& trackKey)
+{
+    if (itemKey.isEmpty())
+        return;
+    
+    auto curItem = new ClipItem(itemKey);
+
+    curItem->insertToTrack(trackKey);
+    m_clips.insert(itemKey, curItem);
+    curItem->m_isRemoved = false;
+    qDebug()<<"add clip with£º"<<itemKey;
+    this->scene()->addItem(curItem);
+    TimelineInstance()->updateSelectedSourceCache(itemKey,curItem,false);
+}
+void TrackBodyDrawingView::removeClipItem(const QString &itemKey)
+{
+    if (!m_clips.contains(itemKey))
+        return;
+    auto curItem = m_clips[itemKey];
+    curItem->removeFromTrack();
+    curItem->m_isRemoved = true;
+    auto cur = m_clips.begin();
+    while(cur!=m_clips.end())
+    {
+        if(cur.key()==itemKey)
+        {
+            m_clips.erase(cur);
+            break;
+        }
+        cur++;
+    }
+    
+    TimelineInstance()->updateSelectedSourceCache(itemKey,{},true);
+    qDebug()<<"remove clip "<<itemKey;
+    curItem->forceUpdate();
+    this->scene()->removeItem(curItem);
+    m_removedClips.push_back(curItem);
+}
+void TrackBodyDrawingView::updateClipItem(const QString &itemKey)
+{
+    if (!m_clips.contains(itemKey))
+        return;
+    qDebug()<<"update clip "<<itemKey;
+    m_clips[itemKey]->forceUpdate();
+}
+ClipItem* TrackBodyDrawingView::getClipItem(const QString &itemKey)
+{
+    if (!m_clips.contains(itemKey))
+        return nullptr;
+    return  m_clips[itemKey];
 }
 
 

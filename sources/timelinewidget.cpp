@@ -6,10 +6,6 @@
 
 #include "timelinewidget.h"
 #include "../forms/ui_timelinewidget.h"
-#include "tick/tickdrawingview.h"
-#include "ruler/rulerdrawingview.h"
-#include "trackhead/trackheaddrawingview.h"
-#include "trackbody/trackbodydrawingview.h"
 #include "extensionmethods.h"
 #include "timelinedefination.h"
 #include "intervalwatcher.h"
@@ -379,7 +375,8 @@ void TimelineWidget::addClip(const QString &trackKey,
     m_timelineData.addClip(cur.id, mime);
 
     if (shouldEmitSignal) {
-        emit TrackClipChanged(trackKey, mime.id, 1);
+        //emit TrackClipChanged(trackKey, mime.id, 1);
+        m_trackBodyView->clipChanged(trackKey,mime.id,1);
     }
     if (shouldUpdateMaxDuration && mime.endPosition() > (maxDuration() / 1.5)) {
         updateMaxDuration();
@@ -412,9 +409,9 @@ void TimelineWidget::removeClip(const ClipMime &clipKey, bool searchWhenTrackKey
     }
     m_timelineData.removeClip(searchTrack.id, clipKey.id);
     if (shouldEmitSignal) {
-        emit TrackClipChanged(searchTrack.id, clipKey.id, -1);
+        //emit TrackClipChanged(searchTrack.id, clipKey.id, -1);
+        m_trackBodyView->clipChanged(searchTrack.id,clipKey.id,-1);
     }
-
 }
 void TimelineWidget::addClip(int index, ClipMime &mime, bool shouldEmitSignal, bool shouldUpdateMaxDuration)
 {
@@ -516,8 +513,7 @@ void TimelineWidget::setSelectedClip(const QString &clip, bool isCancel)
         m_selectedClips.clear();
         m_selectedClips.push_back(clip);
         auto curClipMime = m_timelineData.getClip(clip, "");
-        auto curSelectedItemTrack = m_trackBodyView->getTrackBody(curClipMime.trackId);
-        auto curClipItem = curSelectedItemTrack->getClipItem(clip);
+        auto curClipItem = m_trackBodyView->getClipItem(clip);
         if (curClipItem != nullptr && !m_selectedClipsCache.contains(clip)) {
             m_selectedClipsCache.insert(clip, curClipItem);
         }
@@ -540,8 +536,7 @@ void TimelineWidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
                 m_selectedClips.push_back(curClip);
             }
             auto curClipMime = m_timelineData.getClip(curClip, "");
-            auto curSelectedItemTrack = m_trackBodyView->getTrackBody(curClipMime.trackId);
-            auto curClipItem = curSelectedItemTrack->getClipItem(curClip);
+            auto curClipItem = m_trackBodyView->getClipItem(curClip);
             if (curClipItem != nullptr && !m_selectedClipsCache.contains(curClip)) {
                 m_selectedClipsCache.insert(curClip, curClipItem);
             }
@@ -549,7 +544,7 @@ void TimelineWidget::setSelectedClip(const QList<QString> &clips, bool isCancel)
     }
 
 }
-void TimelineWidget::setSelectedClip(const QList<ClipItem *> &clips, bool isCancel)
+void TimelineWidget::setSelectedClip(const QList<ClipItem*> &clips, bool isCancel)
 {
     if (isCancel) {
 
@@ -558,7 +553,7 @@ void TimelineWidget::setSelectedClip(const QList<ClipItem *> &clips, bool isCanc
     }
     else {
         m_selectedClips.clear();
-        std::for_each(clips.begin(), clips.end(), [&](ClipItem *curClip) -> void
+        std::for_each(clips.begin(), clips.end(), [&](ClipItem* curClip) -> void
         {
             if (curClip == nullptr)
                 return;
@@ -575,13 +570,22 @@ void TimelineWidget::setSelectedClip(const QList<ClipItem *> &clips, bool isCanc
 
 }
 
-void TimelineWidget::updateSelectedSourceCache(const QString &clipId, ClipItem *clip)
+void TimelineWidget::updateSelectedSourceCache(const QString &clipId,ClipItem*clip,bool isRemove)
 {
     if (!m_selectedClipsCache.contains(clipId)) {
+        if(isRemove)
+            return;
         m_selectedClipsCache.insert(clipId, clip);
     }
     else {
-        m_selectedClipsCache[clipId] = clip;
+        if(isRemove)
+        {
+            m_selectedClipsCache.remove(clipId);
+        }
+        else{
+            m_selectedClipsCache[clipId] = clip;
+        }
+
     }
 }
 
@@ -742,9 +746,9 @@ void TimelineWidget::clipMoved(double x, double y, bool isOver,bool posNotMoved)
             }
         }
         else {
-            multiClipCollied(movements, false);
-
+            multiClipCollied(movements, false);  
         }
+         //removeEmptyTrack();
     }
     else {
         for(int i=0;i<m_selectedClips.count();i++)
@@ -769,9 +773,8 @@ void TimelineWidget::clipMoved(double x, double y, bool isOver,bool posNotMoved)
         }
         updateMaxDuration();
     }
-
     m_trackBodyView->update(m_trackBodyView->getViewPortRect().toRect());
-    //removeEmptyTrack();
+
 }
 
 void TimelineWidget::alterClipMovement(double x, double y)
@@ -787,9 +790,9 @@ void TimelineWidget::alterClipMovement(double x, double y)
 }
 
 
-QList<ClipItem *> TimelineWidget::getAllSelectedClip()
+QList<ClipItem*> TimelineWidget::getAllSelectedClip()
 {
-    QList<ClipItem *> result;
+    QList<ClipItem*> result;
     std::for_each(m_selectedClips.begin(), m_selectedClips.end(), [&](const QString &clipKey) -> void
     {
         if (m_selectedClipsCache.contains(clipKey)) {
@@ -841,7 +844,7 @@ void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &mo
     QMap<TrackMime, QString> newTracksRef;
     //get tracks mime data,find maximal index and the minimum
     for (const auto &itr: tracks) {
-        auto addIndex = (itr.index < 0) ? 0 : (itr.index);
+        auto addIndex = (maxTrack->index < 0) ? 0 : (maxTrack->index);
         auto newTrackId = QUuid::createUuid().toString().remove("{").remove("}").remove("-");
         if (!addTrack(newTrackId, itr.type,
                       addIndex)) {
@@ -890,6 +893,7 @@ void TimelineWidget::multiClipCollied(const QMap<TrackMime, QList<ClipMime>> &mo
     iw.stop();
     qDebug()<<""<<iw.milliSecond()<<"ms after multi clip drag";
     forceUpdate(RightBottom);
+
 }
 
 #pragma  endregion

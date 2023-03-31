@@ -94,9 +94,9 @@ public:
     ///设置多个选中切片，取已有选中项和传入选中项的并集
     void setSelectedClip(const QList<QString> &clips, bool isCancel = false);
     ///设置多个选中切片，直接使用传入项
-    void setSelectedClip(const QList<ClipItem *> &clips, bool isCancel = false);
+    void setSelectedClip(const QList<ClipItem*> &clips, bool isCancel = false);
     ///获取所有被选中的切片实际对象
-    QList<ClipItem *> getAllSelectedClip();
+    QList<ClipItem*> getAllSelectedClip();
 
     ///判断某个切片是否被选中
     bool isSelected(const QString &clipKey);
@@ -155,7 +155,7 @@ private:
     bool getTrackByVerticalPos(double yPos, TrackMime &trackData);
 private:
     ///更新选中缓存
-    void updateSelectedSourceCache(const QString &clipId, ClipItem *clip);
+    void updateSelectedSourceCache(const QString &clipId, ClipItem*clip,bool isRemove);
 private:
     ///左上单位刻度
     TickDrawingView *m_tickView = nullptr;
@@ -170,11 +170,12 @@ private:
     friend class TrackBodyItem;
     friend class TrackHeadItem;
     friend class AnchorBodyItem;
+    friend class TrackBodyDrawingView;
 private:
     ///被选中的所有切片，仅记录key
     QList<QString> m_selectedClips;
     ///被选中切片的缓存
-    QMap<QString, ClipItem *> m_selectedClipsCache;
+    QMap<QString, ClipItem*> m_selectedClipsCache;
     ///主要的时间线数据
     TimelineMime m_timelineData;
     ///同步锁

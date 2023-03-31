@@ -13,6 +13,7 @@ class TrackHeadItem: public QGraphicsItem
 public:
     explicit TrackHeadItem(QGraphicsItem* parent);
     explicit TrackHeadItem(const TrackMime& curData, QGraphicsItem* parent= nullptr);
+    ~TrackHeadItem();
     TrackMime getMimeData() const;
     void forceUpdate();
 protected:
@@ -20,6 +21,9 @@ protected:
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)override;
 private:
     QString m_mimeKey;
+public:
+    bool m_isRemoved = false;
+
 };
 
 
